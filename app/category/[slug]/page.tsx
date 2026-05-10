@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/post/PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { mockPosts, mockCategories } from "@/lib/mock-data";
+import { getAllPosts, getCategoryBySlug } from "@/lib/store";
 import Link from "next/link";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -11,20 +13,18 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = mockCategories.find((c) => c.slug === slug);
+  const category = getCategoryBySlug(slug);
   if (!category) return { title: "Khong tim thay" };
   return { title: category.name };
 }
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = mockCategories.find((c) => c.slug === slug);
+  const category = getCategoryBySlug(slug);
 
   if (!category) notFound();
 
-  const posts = mockPosts
-    .filter((p) => p.category === slug)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const posts = getAllPosts().filter((p) => p.category === slug);
 
   return (
     <div className="mx-auto max-w-3xl px-6 pb-16 pt-8">

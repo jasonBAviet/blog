@@ -2,10 +2,14 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { PostContent } from "@/components/post/PostContent";
 import { PostMeta } from "@/components/post/PostMeta";
+import { CommentSection } from "@/components/post/CommentSection";
+import { ViewCounter } from "@/components/post/ViewCounter";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { mockPosts } from "@/lib/mock-data";
+import { getPostBySlug } from "@/lib/store";
 import { formatDate } from "@/lib/utils";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -13,14 +17,14 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = mockPosts.find((p) => p.slug === slug);
+  const post = getPostBySlug(slug);
   if (!post) return { title: "Khong tim thay" };
   return { title: post.title };
 }
 
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = mockPosts.find((p) => p.slug === slug);
+  const post = getPostBySlug(slug);
 
   if (!post) notFound();
 
@@ -82,6 +86,10 @@ export default async function PostPage({ params }: PageProps) {
       <FadeIn delay={0.1}>
         <PostContent content={post.content} />
       </FadeIn>
+
+      <CommentSection postSlug={post.slug} />
+
+      <ViewCounter slug={post.slug} />
 
       <div className="mt-16 border-t border-neutral-200/60 pt-8 dark:border-neutral-800/60">
         <p className="text-center font-serif text-sm text-neutral-400 dark:text-neutral-600">

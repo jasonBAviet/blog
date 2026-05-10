@@ -6,7 +6,7 @@ import { slugify } from "@/lib/utils";
 const SOURCE_DIR = path.join(process.cwd(), "Source");
 const DEFAULT_CATEGORY = "suy-ngam";
 const DEFAULT_CATEGORY_NAME = "Suy ngam";
-const DATE_FILE_REGEX = /^\d{2}\.\d{2}\.\d{4}$/;
+const MD_FILE_REGEX = /^\d{2}\.\d{2}\.\d{4}\.md$/;
 const IMAGE_FILE_REGEX = /^(\d{2}\.\d{2}\.\d{4})(?:\.(\d+))?\.png$/i;
 
 function formatIsoDate(dateText: string): string {
@@ -14,21 +14,54 @@ function formatIsoDate(dateText: string): string {
   return `${year}-${month}-${day}`;
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+function parseFrontmatter(content: string): { frontmatter: Record<string, any>; body: string } {
+  // Normalize line endings
+  const normalized = content.replace(/\r\n/g, "\n");
+  
+  // Match markdown frontmatter: --- YAML --- content
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  
+  if (!match) {
+    return { frontmatter: {}, body: normalized };
+  }
+
+  const frontmatterText = match[1];
+  const body = match[2].trim();
+  const frontmatter: Record<string, any> = {};
+
+  // Simple YAML parser for our use case
+  frontmatterText.split("\n").forEach((line) => {
+    const colonIdx = line.indexOf(":");
+    if (colonIdx === -1) return;
+
+    const key = line.substring(0, colonIdx).trim();
+    const value = line.substring(colonIdx + 1).trim();
+
+    if (value.startsWith("[") && value.endsWith("]")) {
+      // Parse array: ["item1", "item2"]
+      frontmatter[key] = value
+        .slice(1, -1)
+        .split(",")
+        .map((s) => s.trim().replace(/^["']|["']$/g, ""));
+    } else {
+      // Remove quotes
+      frontmatter[key] = value.replace(/^["']|["']$/g, "");
+    }
+  });
+
+  return { frontmatter, body };
 }
 
-function textToHtml(text: string): string {
-  const normalized = text.replace(/\r\n/g, "\n").trim();
-  if (!normalized) return "<p></p>";
+function markdownToHtml(markdown: string): string {
+  let html = markdown.replace(/\r\n/g, "\n").trim();
 
-  return normalized
-    .split(/\n\s*\n/g)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
+  // Convert paragraphs (separated by blank lines)
+  html = html
+    .split(/\n\s*\n/)
+    .map((p) => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`)
     .join("\n\n");
+
+  return html;
 }
 
 function getImageMap(files: string[]): Record<string, string[]> {
@@ -63,20 +96,24 @@ function loadSourcePosts(): Post[] {
   const imageMap = getImageMap(entries);
 
   const posts = entries
-    .filter((name) => DATE_FILE_REGEX.test(name))
+    .filter((name) => MD_FILE_REGEX.test(name))
     .filter((name) => fs.statSync(path.join(SOURCE_DIR, name)).isFile())
-    .map((dateTitle) => {
-      const filePath = path.join(SOURCE_DIR, dateTitle);
-      const rawText = fs.readFileSync(filePath, "utf8");
-      const images = (imageMap[dateTitle] || []).map((imageName) => `/source-images/${imageName}`);
+    .map((filename) => {
+      const filePath = path.join(SOURCE_DIR, filename);
+      const rawContent = fs.readFileSync(filePath, "utf8");
+      const { frontmatter, body } = parseFrontmatter(rawContent);
+
+      // Extract date from filename (DD.MM.YYYY.md -> DD.MM.YYYY)
+      const dateStr = filename.replace(".md", "");
+      const images = (imageMap[dateStr] || []).map((imageName) => `/source-images/${imageName}`);
 
       return {
-        slug: slugify(dateTitle),
-        title: dateTitle,
-        content: textToHtml(rawText),
-        category: DEFAULT_CATEGORY,
-        categoryName: DEFAULT_CATEGORY_NAME,
-        createdAt: formatIsoDate(dateTitle),
+        slug: frontmatter.slug || slugify(dateStr),
+        title: frontmatter.title || dateStr,
+        content: markdownToHtml(body),
+        category: frontmatter.category || DEFAULT_CATEGORY,
+        categoryName: frontmatter.category || DEFAULT_CATEGORY_NAME,
+        createdAt: frontmatter.date || formatIsoDate(dateStr),
         views: 0,
         coverImage: images[0],
         images,

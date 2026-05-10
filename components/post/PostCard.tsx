@@ -23,6 +23,8 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
               width={1200}
               height={675}
               priority={priority}
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
               sizes="(max-width: 768px) 100vw, 768px"
               className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
             />

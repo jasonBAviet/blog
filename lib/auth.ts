@@ -12,10 +12,10 @@ export async function verifyPassword(password: string): Promise<boolean> {
 export async function setAuthCookie() {
   const cookieStore = await cookies();
   cookieStore.set(AUTH_COOKIE, "true", {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
 }

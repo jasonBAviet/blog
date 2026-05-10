@@ -6,8 +6,9 @@ import {
   ImageExtension,
   PlaceholderExtension,
   LinkExtension,
+  ImageDropPasteExtension,
 } from "@/lib/editor-extensions";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 interface PostEditorProps {
   content: string;
@@ -15,6 +16,8 @@ interface PostEditorProps {
 }
 
 export function PostEditor({ content, onChange }: PostEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -29,6 +32,7 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
       LinkExtension.configure({
         openOnClick: false,
       }),
+      ImageDropPasteExtension,
     ],
     content,
     editorProps: {
@@ -43,12 +47,31 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
   });
 
   const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt("Nhap URL anh:");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+    const input = fileInputRef.current;
+    if (input) {
+      input.value = "";
+      input.click();
     }
-  }, [editor]);
+  }, []);
+
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || !editor) return;
+      for (const file of Array.from(files)) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          editor
+            .chain()
+            .focus()
+            .setImage({ src: reader.result as string })
+            .run();
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [editor]
+  );
 
   const addLink = useCallback(() => {
     if (!editor) return;
@@ -127,6 +150,14 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
         <ToolBtn active={false} onClick={addImage} label="Chen anh">
           <ImageIcon />
         </ToolBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileInput}
+          className="hidden"
+        />
       </div>
       <EditorContent editor={editor} />
     </div>

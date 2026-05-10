@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getStats } from "@/lib/store";
 
 export function DashboardStats() {
@@ -50,9 +51,17 @@ export function DashboardStats() {
                     {post.categoryName || post.category}
                   </p>
                 </div>
-                <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                  {post.views} views
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                    {post.views} views
+                  </span>
+                  <Link
+                    href={`/admin/editor/${post.slug}`}
+                    className="rounded px-2 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  >
+                    Sua
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
@@ -83,9 +92,17 @@ export function DashboardStats() {
                     {post.categoryName || post.category}
                   </p>
                 </div>
-                <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                  {post.views} views
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                    {post.views} views
+                  </span>
+                  <Link
+                    href={`/admin/editor/${post.slug}`}
+                    className="rounded px-2 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  >
+                    Sua
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

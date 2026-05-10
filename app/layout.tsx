@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     template: "%s - Blog ca nhan",
   },
   description: "Blog ca nhan - Noi chia se ve cong nghe, doi song va suy ngam",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

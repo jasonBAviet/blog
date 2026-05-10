@@ -1,11 +1,11 @@
 import { PostCard } from "@/components/post/PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { mockPosts } from "@/lib/mock-data";
+import { getAllPosts } from "@/lib/store";
+
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  const posts = [...mockPosts].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const posts = getAllPosts();
 
   return (
     <div className="mx-auto max-w-3xl px-6 pb-16 pt-8">
