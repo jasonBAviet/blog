@@ -5,7 +5,7 @@ import { slugify } from "@/lib/utils";
 
 const SOURCE_DIR = path.join(process.cwd(), "Source");
 const DEFAULT_CATEGORY = "suy-ngam";
-const DEFAULT_CATEGORY_NAME = "Suy ngam";
+const DEFAULT_CATEGORY_NAME = "Suy ngẫm";
 const MD_FILE_REGEX = /^\d{2}\.\d{2}\.\d{4}\.md$/;
 const IMAGE_FILE_REGEX = /^(\d{2}\.\d{2}\.\d{4})(?:\.(\d+))?\.png$/i;
 

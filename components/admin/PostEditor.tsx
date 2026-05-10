@@ -27,7 +27,7 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
         HTMLAttributes: { class: "rounded-lg my-4 max-w-full" },
       }),
       PlaceholderExtension.configure({
-        placeholder: "Paste noi dung tu Facebook vao day...",
+        placeholder: "Paste nội dung từ Facebook vào đây...",
       }),
       LinkExtension.configure({
         openOnClick: false,
@@ -38,7 +38,7 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[300px] px-4 py-3 text-[15px] leading-relaxed font-serif",
+          "prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[260px] sm:min-h-[300px] px-4 py-3 text-[15px] leading-relaxed font-serif",
       },
     },
     onUpdate: ({ editor }) => {
@@ -75,7 +75,7 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
 
   const addLink = useCallback(() => {
     if (!editor) return;
-    const url = window.prompt("Nhap URL lien ket:");
+    const url = window.prompt("Nhập URL liên kết:");
     if (url) {
       editor.chain().focus().setLink({ href: url }).run();
     }
@@ -91,18 +91,18 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
 
   return (
     <div className="rounded-lg border border-neutral-200 dark:border-neutral-800">
-      <div className="flex items-center gap-0.5 border-b border-neutral-200 px-2 py-1.5 dark:border-neutral-800">
+      <div className="flex items-center gap-0.5 overflow-x-auto border-b border-neutral-200 px-2 py-1.5 dark:border-neutral-800">
         <ToolBtn
           active={editor.isActive("bold")}
           onClick={() => editor.chain().focus().toggleBold().run()}
-          label="In dam"
+          label="In đậm"
         >
           <strong>B</strong>
         </ToolBtn>
         <ToolBtn
           active={editor.isActive("italic")}
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          label="In nghieng"
+          label="In nghiêng"
         >
           <em>I</em>
         </ToolBtn>
@@ -110,14 +110,14 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
         <ToolBtn
           active={editor.isActive("heading", { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          label="Tieu de H2"
+          label="Tiêu đề H2"
         >
           H2
         </ToolBtn>
         <ToolBtn
           active={editor.isActive("heading", { level: 3 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          label="Tieu de H3"
+          label="Tiêu đề H3"
         >
           H3
         </ToolBtn>
@@ -125,29 +125,29 @@ export function PostEditor({ content, onChange }: PostEditorProps) {
         <ToolBtn
           active={editor.isActive("bulletList")}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          label="Danh sach"
+          label="Danh sách"
         >
           <BulletIcon />
         </ToolBtn>
         <ToolBtn
           active={editor.isActive("orderedList")}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          label="Danh sach so"
+          label="Danh sách số"
         >
           <OrderedIcon />
         </ToolBtn>
         <ToolBtn
           active={editor.isActive("blockquote")}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          label="Trich dan"
+          label="Trích dẫn"
         >
           <QuoteIcon />
         </ToolBtn>
         <Separator />
-        <ToolBtn active={editor.isActive("link")} onClick={addLink} label="Chen lien ket">
+        <ToolBtn active={editor.isActive("link")} onClick={addLink} label="Chèn liên kết">
           <LinkIcon />
         </ToolBtn>
-        <ToolBtn active={false} onClick={addImage} label="Chen anh">
+        <ToolBtn active={false} onClick={addImage} label="Chèn ảnh">
           <ImageIcon />
         </ToolBtn>
         <input
@@ -181,7 +181,7 @@ function ToolBtn({
       onClick={onClick}
       title={label}
       className={
-        "flex h-7 w-7 items-center justify-center rounded text-xs transition-colors " +
+        "flex h-9 w-9 flex-none items-center justify-center rounded text-xs transition-colors sm:h-7 sm:w-7 " +
         (active
           ? "bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white"
           : "text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800")

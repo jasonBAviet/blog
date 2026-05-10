@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   html {
     @apply antialiased;
     scroll-behavior: smooth;
@@ -10,6 +16,8 @@
 
   body {
     @apply bg-white font-sans text-neutral-800 dark:bg-neutral-950 dark:text-neutral-200;
+    overflow-x: hidden;
+    text-wrap: pretty;
   }
 
   ::selection {

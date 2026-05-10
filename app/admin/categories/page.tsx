@@ -17,7 +17,7 @@ export default function CategoriesPage() {
       const res = await fetch("/api/categories");
       setCategories(await res.json());
     } catch {
-      setMessage("Loi tai danh muc.");
+      setMessage("Lỗi tải danh mục.");
     } finally {
       setLoading(false);
     }
@@ -46,10 +46,10 @@ export default function CategoriesPage() {
         setMessage("");
         await loadCategories();
       } else {
-        setMessage("Loi tao danh muc.");
+        setMessage("Lỗi tạo danh mục.");
       }
     } catch {
-      setMessage("Loi ket noi.");
+      setMessage("Lỗi kết nối.");
     }
   }
 
@@ -66,25 +66,25 @@ export default function CategoriesPage() {
         setMessage("");
         await loadCategories();
       } else {
-        setMessage("Loi cap nhat danh muc.");
+        setMessage("Lỗi cập nhật danh mục.");
       }
     } catch {
-      setMessage("Loi ket noi.");
+      setMessage("Lỗi kết nối.");
     }
   }
 
   async function handleDelete(slug: string) {
-    if (!confirm("Xoa danh muc nay?")) return;
+    if (!confirm("Xóa danh mục này?")) return;
     try {
       const res = await fetch(`/api/categories/${slug}`, { method: "DELETE" });
       if (res.ok) {
         setMessage("");
         await loadCategories();
       } else {
-        setMessage("Loi xoa danh muc.");
+        setMessage("Lỗi xóa danh mục.");
       }
     } catch {
-      setMessage("Loi ket noi.");
+      setMessage("Lỗi kết nối.");
     }
   }
 
@@ -98,25 +98,25 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <h1 className="mb-8 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-        Quan ly danh muc
+      <h1 className="mb-6 font-serif text-xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-8 sm:text-2xl">
+        Quản lý danh mục
       </h1>
 
       <div className="mb-8 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-        <form onSubmit={handleCreate} className="flex gap-2">
+        <form onSubmit={handleCreate} className="flex flex-col gap-2 sm:flex-row">
           <input
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Ten danh muc moi..."
+            placeholder="Tên danh mục mới..."
             className="flex-1 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-600"
           />
           <button
             type="submit"
             disabled={!newName.trim()}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="min-h-10 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           >
-            Them
+            Thêm
           </button>
         </form>
       </div>
@@ -127,7 +127,7 @@ export default function CategoriesPage() {
 
       {categories.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Chua co danh muc nao.
+          Chưa có danh mục nào.
         </p>
       ) : (
         <div className="rounded-lg border border-neutral-200 dark:border-neutral-800">
@@ -135,14 +135,14 @@ export default function CategoriesPage() {
             <div
               key={cat.slug}
               className={
-                "flex items-center justify-between px-4 py-3 " +
+                "flex flex-col items-start justify-between gap-2 px-4 py-3 sm:flex-row sm:items-center " +
                 (i < categories.length - 1
                   ? "border-b border-neutral-100 dark:border-neutral-800/50"
                   : "")
               }
             >
               {editingSlug === cat.slug ? (
-                <div className="flex flex-1 items-center gap-2">
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     type="text"
                     value={editName}
@@ -152,15 +152,15 @@ export default function CategoriesPage() {
                   />
                   <button
                     onClick={() => handleUpdate(cat.slug)}
-                    className="rounded px-2 py-1 text-xs text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                    className="min-h-9 rounded px-2 py-1 text-xs text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
                   >
-                    Luu
+                    Lưu
                   </button>
                   <button
                     onClick={() => setEditingSlug(null)}
-                    className="rounded px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    className="min-h-9 rounded px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
-                    Huy
+                    Hủy
                   </button>
                 </div>
               ) : (
@@ -173,21 +173,21 @@ export default function CategoriesPage() {
                       /{cat.slug}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 self-start sm:self-auto">
                     <button
                       onClick={() => {
                         setEditingSlug(cat.slug);
                         setEditName(cat.name);
                       }}
-                      className="rounded px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                      className="min-h-9 rounded px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      Sua
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDelete(cat.slug)}
-                      className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      className="min-h-9 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                     >
-                      Xoa
+                      Xóa
                     </button>
                   </div>
                 </>

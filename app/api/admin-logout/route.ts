@@ -6,6 +6,6 @@ export async function POST() {
     await removeAuthCookie();
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }

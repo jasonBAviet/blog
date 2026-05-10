@@ -26,11 +26,11 @@ export default function NewPostPage() {
   async function handlePublish(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setMessage("Vui long nhap tieu de va noi dung.");
+      setMessage("Vui lòng nhập tiêu đề và nội dung.");
       return;
     }
     if (!category) {
-      setMessage("Vui long chon danh muc.");
+      setMessage("Vui lòng chọn danh mục.");
       return;
     }
 
@@ -57,10 +57,10 @@ export default function NewPostPage() {
       if (res.ok) {
         router.push("/admin");
       } else {
-        setMessage("Loi khi dang bai.");
+        setMessage("Lỗi khi đăng bài.");
       }
     } catch {
-      setMessage("Loi ket noi.");
+      setMessage("Lỗi kết nối.");
     } finally {
       setLoading(false);
     }
@@ -68,34 +68,34 @@ export default function NewPostPage() {
 
   return (
     <div>
-      <h1 className="mb-8 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-        Viet bai moi
+      <h1 className="mb-6 font-serif text-xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-8 sm:text-2xl">
+        Viết bài mới
       </h1>
 
       <form onSubmit={handlePublish} className="space-y-5">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            Tieu de
+            Tiêu đề
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Nhap tieu de bai viet..."
+            placeholder="Nhập tiêu đề bài viết..."
             className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-600"
           />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            Danh muc
+            Danh mục
           </label>
           <CategorySelect categories={categories} value={category} onChange={setCategory} />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            Noi dung
+            Nội dung
           </label>
           <PostEditor content={content} onChange={setContent} />
         </div>
@@ -104,7 +104,7 @@ export default function NewPostPage() {
           <p
             className={
               "text-xs " +
-              (message.includes("Loi") || message.includes("Vui")
+               (message.includes("Lỗi") || message.includes("Vui")
                 ? "text-red-600 dark:text-red-400"
                 : "text-green-600 dark:text-green-400")
             }
@@ -113,20 +113,20 @@ export default function NewPostPage() {
           </p>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="min-h-10 w-full rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 sm:w-auto"
           >
-            {loading ? "Dang dang bai..." : "Dang bai"}
+            {loading ? "Đang đăng bài..." : "Đăng bài"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/admin")}
-            className="rounded-md px-4 py-2 text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+            className="min-h-10 w-full rounded-md px-4 py-2 text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white sm:w-auto"
           >
-            Huy
+            Hủy
           </button>
         </div>
       </form>

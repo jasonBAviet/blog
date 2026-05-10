@@ -3,13 +3,13 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="border-t border-neutral-200/60 dark:border-neutral-800/60">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-8 text-sm text-neutral-400 dark:text-neutral-600">
-        <p>Blog ca nhan</p>
+      <div className="mx-auto flex max-w-3xl flex-col items-start gap-2 px-4 py-6 text-sm text-neutral-400 dark:text-neutral-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-8">
+        <p>Blog cá nhân</p>
         <Link
           href="/admin/login"
-          className="transition-colors hover:text-neutral-600 dark:hover:text-neutral-400"
+          className="inline-flex min-h-10 items-center transition-colors hover:text-neutral-600 dark:hover:text-neutral-400 sm:min-h-0"
         >
-          Quan tri
+          Quản trị
         </Link>
       </div>
     </footer>

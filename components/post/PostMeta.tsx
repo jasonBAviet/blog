@@ -12,16 +12,16 @@ export function PostMeta({ date, views, readingTimeContent }: PostMetaProps) {
     : null;
 
   return (
-    <div className="flex items-center gap-3 font-sans text-sm text-neutral-400 dark:text-neutral-500">
-      <time dateTime={date}>{date}</time>
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-xs text-neutral-400 dark:text-neutral-500 sm:text-sm">
+      <time dateTime={date} className="whitespace-nowrap">{date}</time>
       {readingTime !== null && (
         <>
-          <span className="text-neutral-300 dark:text-neutral-700">/</span>
-          <span>{readingTime} phut doc</span>
+          <span className="hidden text-neutral-300 dark:text-neutral-700 sm:inline">/</span>
+          <span className="whitespace-nowrap">{readingTime} phut doc</span>
         </>
       )}
-      <span className="text-neutral-300 dark:text-neutral-700">/</span>
-      <span>{views} luot xem</span>
+      <span className="hidden text-neutral-300 dark:text-neutral-700 sm:inline">/</span>
+      <span className="whitespace-nowrap">{views} luot xem</span>
     </div>
   );
 }

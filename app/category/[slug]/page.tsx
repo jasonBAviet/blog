@@ -14,7 +14,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const category = getCategoryBySlug(slug);
-  if (!category) return { title: "Khong tim thay" };
+  if (!category)     return { title: "Không tìm thấy" };
   return { title: category.name };
 }
 
@@ -27,22 +27,22 @@ export default async function CategoryPage({ params }: PageProps) {
   const posts = getAllPosts().filter((p) => p.category === slug);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 pb-16 pt-8">
-      <div className="mb-12">
+    <div className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
+      <div className="mb-10 sm:mb-12">
         <Link
           href="/"
-          className="mb-4 inline-block font-sans text-sm text-neutral-400 transition-colors hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+          className="mb-3 inline-block text-xs text-neutral-400 transition-colors hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 sm:mb-4 sm:text-sm"
         >
-          Tat ca bai viet
+          Tất cả bài viết
         </Link>
-        <h1 className="font-serif text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">
           {category.name}
         </h1>
       </div>
 
       {posts.length === 0 ? (
         <p className="font-serif text-neutral-500 dark:text-neutral-400">
-          Chua co bai viet nao trong danh muc nay.
+          Chưa có bài viết nào trong danh mục này.
         </p>
       ) : (
         <div>

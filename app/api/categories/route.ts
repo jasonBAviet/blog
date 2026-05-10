@@ -6,7 +6,7 @@ export async function GET() {
     const categories = getAllCategories();
     return NextResponse.json(categories);
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
 
@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { slug, name, createdAt } = body;
     if (!slug || !name) {
-      return NextResponse.json({ error: "Thieu slug hoac name" }, { status: 400 });
+      return NextResponse.json({ error: "Thiếu slug hoặc name" }, { status: 400 });
     }
     createCategory({ slug, name, createdAt: createdAt || new Date().toISOString() });
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }

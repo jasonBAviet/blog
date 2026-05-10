@@ -13,7 +13,7 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
     + "...";
 
   return (
-    <article className="group border-b border-neutral-200/60 py-8 last:border-b-0 dark:border-neutral-800/60">
+    <article className="group border-b border-neutral-200/60 py-6 last:border-b-0 dark:border-neutral-800/60 sm:py-8">
       <Link href={`/post/${post.slug}`} className="block">
         {post.coverImage && (
           <div className="mb-4 overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-800/60">
@@ -23,8 +23,6 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
               width={1200}
               height={675}
               priority={priority}
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "auto"}
               sizes="(max-width: 768px) 100vw, 768px"
               className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
             />
@@ -37,11 +35,11 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
           </span>
         </div>
 
-        <h2 className="mb-2 font-serif text-xl font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-neutral-600 dark:text-white dark:group-hover:text-neutral-300">
+        <h2 className="mb-2 text-balance font-serif text-lg font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-neutral-600 dark:text-white dark:group-hover:text-neutral-300 sm:text-xl">
           {post.title}
         </h2>
 
-        <p className="mb-3 font-serif leading-relaxed text-neutral-500 dark:text-neutral-400">
+        <p className="mb-3 text-sm font-serif leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
           {excerpt}
         </p>
 

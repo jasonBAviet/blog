@@ -18,10 +18,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200/60 bg-white/80 backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-950/80">
-      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
+      <div className="mx-auto flex h-12 max-w-3xl items-center justify-between px-4 sm:h-14 sm:px-6">
         <Link
           href="/"
-          className="font-serif text-lg font-semibold tracking-tight text-neutral-900 dark:text-white"
+          className="font-serif text-base font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-lg"
         >
           Blog
         </Link>
@@ -30,7 +30,7 @@ export function Header() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+              className="flex h-10 w-10 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 sm:h-8 sm:w-8"
               aria-label="Chuyen doi dark mode"
             >
               {theme === "dark" ? (

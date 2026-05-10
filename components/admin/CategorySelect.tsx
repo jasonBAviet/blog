@@ -15,8 +15,8 @@ export function CategorySelect({ categories, value, onChange }: CategorySelectPr
 
   if (!mounted) {
     return (
-      <select className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white" disabled>
-        <option>Dang tai...</option>
+      <select className="min-h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white" disabled>
+        <option>Đang tải...</option>
       </select>
     );
   }
@@ -25,9 +25,9 @@ export function CategorySelect({ categories, value, onChange }: CategorySelectPr
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-neutral-600"
+      className="min-h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-neutral-600"
     >
-      <option value="">Chon danh muc</option>
+      <option value="">Chọn danh mục</option>
       {categories.map((cat) => (
         <option key={cat.slug} value={cat.slug}>
           {cat.name}

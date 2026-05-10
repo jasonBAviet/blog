@@ -13,7 +13,7 @@ export default function CommentsPage() {
       const res = await fetch("/api/comments");
       setComments(await res.json());
     } catch {
-      setMessage("Loi tai binh luan.");
+      setMessage("Lỗi tải bình luận.");
     } finally {
       setLoading(false);
     }
@@ -24,17 +24,17 @@ export default function CommentsPage() {
   }, []);
 
   async function handleDelete(id: string) {
-    if (!confirm("Xoa binh luan nay?")) return;
+    if (!confirm("Xóa bình luận này?")) return;
     try {
       const res = await fetch(`/api/comments/${id}`, { method: "DELETE" });
       if (res.ok) {
         setMessage("");
         await loadComments();
       } else {
-        setMessage("Loi xoa binh luan.");
+        setMessage("Lỗi xóa bình luận.");
       }
     } catch {
-      setMessage("Loi ket noi.");
+      setMessage("Lỗi kết nối.");
     }
   }
 
@@ -48,8 +48,8 @@ export default function CommentsPage() {
 
   return (
     <div>
-      <h1 className="mb-8 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-        Quan ly binh luan
+      <h1 className="mb-6 font-serif text-xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-8 sm:text-2xl">
+        Quản lý bình luận
       </h1>
 
       {message && (
@@ -58,7 +58,7 @@ export default function CommentsPage() {
 
       {comments.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Chua co binh luan nao.
+          Chưa có bình luận nào.
         </p>
       ) : (
         <div className="rounded-lg border border-neutral-200 dark:border-neutral-800">
@@ -72,24 +72,24 @@ export default function CommentsPage() {
                   : "")
               }
             >
-              <div className="mb-1 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
                     {comment.authorName}
                   </span>
                   <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                    tren bai: {comment.postSlug}
+                    trên bài: {comment.postSlug}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start sm:self-auto">
                   <span className="text-xs text-neutral-400 dark:text-neutral-500">
                     {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
                   </span>
                   <button
                     onClick={() => handleDelete(comment.id)}
-                    className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    className="min-h-9 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                   >
-                    Xoa
+                    Xóa
                   </button>
                 </div>
               </div>

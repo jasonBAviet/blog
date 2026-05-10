@@ -18,7 +18,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
-  if (!post) return { title: "Khong tim thay" };
+  if (!post) return { title: "Không tìm thấy" };
   return { title: post.title };
 }
 
@@ -29,7 +29,7 @@ export default async function PostPage({ params }: PageProps) {
   if (!post) notFound();
 
   return (
-    <article className="mx-auto max-w-3xl px-6 pb-16 pt-8">
+    <article className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
       <FadeIn>
         <div className="mb-2">
           <span className="font-sans text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
@@ -37,7 +37,7 @@ export default async function PostPage({ params }: PageProps) {
           </span>
         </div>
 
-        <h1 className="mb-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-neutral-900 dark:text-white md:text-4xl">
+        <h1 className="mb-4 font-serif text-2xl font-semibold leading-tight tracking-tight text-neutral-900 dark:text-white sm:text-3xl md:text-4xl">
           {post.title}
         </h1>
 

@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 export default function DashboardPage() {
   return (
     <div>
-      <h1 className="mb-8 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-        Tong quan
+      <h1 className="mb-6 font-serif text-xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-8 sm:text-2xl">
+        Tổng quan
       </h1>
       <Suspense
         fallback={

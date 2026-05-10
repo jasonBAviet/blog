@@ -6,11 +6,11 @@ export async function POST(request: Request) {
     const { password } = await request.json();
     const valid = await verifyPassword(password);
     if (!valid) {
-      return NextResponse.json({ error: "Mat khau khong dung" }, { status: 401 });
+      return NextResponse.json({ error: "Mật khẩu không đúng" }, { status: 401 });
     }
     await setAuthCookie();
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }

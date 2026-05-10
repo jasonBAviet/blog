@@ -20,10 +20,10 @@ const fontSerifVN = Noto_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: "Blog ca nhan",
-    template: "%s - Blog ca nhan",
+    default: "Blog cá nhân",
+    template: "%s - Blog cá nhân",
   },
-  description: "Blog ca nhan - Noi chia se ve cong nghe, doi song va suy ngam",
+  description: "Blog cá nhân - Nơi chia sẻ về công nghệ, đời sống và suy ngẫm",
   icons: {
     icon: "/favicon.svg",
   },

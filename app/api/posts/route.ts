@@ -6,7 +6,7 @@ export async function GET() {
     const posts = getAllPosts();
     return NextResponse.json(posts);
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { slug, title, content, category, categoryName, coverImage, images } = body;
     if (!slug || !title || !content || !category) {
-      return NextResponse.json({ error: "Thieu thong tin bai viet" }, { status: 400 });
+      return NextResponse.json({ error: "Thiếu thông tin bài viết" }, { status: 400 });
     }
     createPost({
       slug,
@@ -30,6 +30,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ success: true, slug }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: "Loi server" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
