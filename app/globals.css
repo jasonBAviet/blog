@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white font-sans text-neutral-800 dark:bg-neutral-950 dark:text-neutral-200;
+  }
+
+  ::selection {
+    @apply bg-neutral-200 dark:bg-neutral-700;
+  }
+}
