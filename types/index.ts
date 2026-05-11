@@ -4,9 +4,11 @@ export interface Post {
   content: string;
   category: string;
   categoryName?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt?: string;
   views: number;
+  reactions?: Record<string, number>;
   coverImage?: string;
   images?: string[];
 }

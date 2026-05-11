@@ -11,6 +11,20 @@ export function getAllPosts(): Post[] {
   );
 }
 
+export function getPaginatedPosts(page: number, limit: number) {
+  const sorted = getAllPosts();
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * limit;
+  return {
+    posts: sorted.slice(start, start + limit),
+    total,
+    page: safePage,
+    totalPages,
+  };
+}
+
 export function getPostBySlug(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);
 }
@@ -75,6 +89,37 @@ export function createComment(comment: Comment): void {
 
 export function deleteComment(id: string): void {
   comments = comments.filter((c) => c.id !== id);
+}
+
+export function getPostsByTag(tag: string): Post[] {
+  const normalizedTag = tag.toLowerCase();
+  return posts.filter((p) =>
+    p.tags?.some((t) => t.toLowerCase() === normalizedTag)
+  );
+}
+
+export function getAllTags(): { tag: string; count: number }[] {
+  const tagMap = new Map<string, number>();
+  posts.forEach((p) => {
+    p.tags?.forEach((t) => {
+      const normalized = t.toLowerCase();
+      tagMap.set(normalized, (tagMap.get(normalized) || 0) + 1);
+    });
+  });
+  return Array.from(tagMap.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export function incrementReaction(slug: string, type: string): Record<string, number> {
+  let reactions: Record<string, number> = {};
+  posts = posts.map((p) => {
+    if (p.slug !== slug) return p;
+    reactions = { ...(p.reactions || {}) };
+    reactions[type] = (reactions[type] || 0) + 1;
+    return { ...p, reactions };
+  });
+  return reactions;
 }
 
 export function getStats() {

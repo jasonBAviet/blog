@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Post } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { PostMeta } from "./PostMeta";
+import { TagList } from "./TagList";
 
 export function PostCard({ post, priority = false }: { post: Post; priority?: boolean }) {
   const excerpt = post.content
@@ -42,6 +43,12 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
         <p className="mb-3 text-sm font-serif leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
           {excerpt}
         </p>
+
+        {post.tags && post.tags.length > 0 && (
+          <div className="mb-3">
+            <TagList tags={post.tags} />
+          </div>
+        )}
 
         <PostMeta
           date={formatDate(post.createdAt)}

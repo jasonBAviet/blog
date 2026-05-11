@@ -107,12 +107,17 @@ function loadSourcePosts(): Post[] {
       const dateStr = filename.replace(".md", "");
       const images = (imageMap[dateStr] || []).map((imageName) => `/source-images/${imageName}`);
 
+      const tags: string[] | undefined = frontmatter.tags?.length
+        ? frontmatter.tags
+        : undefined;
+
       return {
         slug: frontmatter.slug || slugify(dateStr),
         title: frontmatter.title || dateStr,
         content: markdownToHtml(body),
         category: frontmatter.category || DEFAULT_CATEGORY,
         categoryName: frontmatter.category || DEFAULT_CATEGORY_NAME,
+        tags,
         createdAt: frontmatter.date || formatIsoDate(dateStr),
         views: 0,
         coverImage: images[0],
