@@ -64,6 +64,25 @@ function markdownToHtml(markdown: string): string {
   return html;
 }
 
+function parseTags(input: unknown): string[] | undefined {
+  if (Array.isArray(input)) {
+    const tags = input
+      .map((tag) => String(tag).trim())
+      .filter(Boolean);
+    return tags.length > 0 ? tags : undefined;
+  }
+
+  if (typeof input === "string") {
+    const tags = input
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    return tags.length > 0 ? tags : undefined;
+  }
+
+  return undefined;
+}
+
 function getImageMap(files: string[]): Record<string, string[]> {
   const imageMap: Record<string, string[]> = {};
 
@@ -107,9 +126,7 @@ function loadSourcePosts(): Post[] {
       const dateStr = filename.replace(".md", "");
       const images = (imageMap[dateStr] || []).map((imageName) => `/source-images/${imageName}`);
 
-      const tags: string[] | undefined = frontmatter.tags?.length
-        ? frontmatter.tags
-        : undefined;
+      const tags = parseTags(frontmatter.tags);
 
       return {
         slug: frontmatter.slug || slugify(dateStr),

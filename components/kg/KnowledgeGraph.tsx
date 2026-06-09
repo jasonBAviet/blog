@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import * as d3 from "d3";
+import { select } from "d3-selection";
+import {
+  forceCenter,
+  forceCollide,
+  forceLink,
+  forceManyBody,
+  forceSimulation,
+} from "d3-force";
+import { drag } from "d3-drag";
+import { zoom } from "d3-zoom";
 import { Post } from "@/types";
 import { buildKnowledgeGraph } from "@/lib/knowledge-graph";
 import { formatDate } from "@/lib/utils";
@@ -29,6 +38,18 @@ function normalizeTag(tag: string): string {
   return tag.trim().toLowerCase();
 }
 
+function getTags(input: unknown): string[] {
+  if (Array.isArray(input)) {
+    return input.map((tag) => String(tag));
+  }
+
+  if (typeof input === "string") {
+    return input.split(",");
+  }
+
+  return [];
+}
+
 export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -38,7 +59,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     const tagMap = new Map<string, string>();
 
     posts.forEach((post) => {
-      post.tags?.forEach((tag) => {
+      getTags(post.tags).forEach((tag) => {
         const normalized = normalizeTag(tag);
         if (!normalized || tagMap.has(normalized)) return;
         tagMap.set(normalized, tag.trim());
@@ -53,7 +74,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
   const filteredPosts = useMemo(() => {
     if (selectedTag === "all") return posts;
     return posts.filter((post) =>
-      post.tags?.some((tag) => normalizeTag(tag) === selectedTag)
+      getTags(post.tags).some((tag) => normalizeTag(tag) === selectedTag)
     );
   }, [posts, selectedTag]);
 
@@ -104,7 +125,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
 
     const width = wrapperElement.clientWidth;
     const height = Math.max(560, Math.min(900, wrapperElement.clientHeight || 720));
-    const svg = d3.select(svgElement);
+    const svg = select(svgElement);
 
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
@@ -217,22 +238,19 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       window.location.href = `/post/${d.slug}`;
     });
 
-    const simulation = d3
-      .forceSimulation(graph.nodes as any)
+    const simulation = forceSimulation(graph.nodes as any)
       .force(
         "link",
-        d3
-          .forceLink(graph.links)
+        forceLink(graph.links)
           .id((d: any) => d.id)
           .distance((d: any) => 150 - Math.min(d.weight, 4) * 12)
           .strength(0.4)
       )
-      .force("charge", d3.forceManyBody().strength(-240))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius((d: any) => nodeRadius(d.tags.length) + 12));
+      .force("charge", forceManyBody().strength(-240))
+      .force("center", forceCenter(width / 2, height / 2))
+      .force("collision", forceCollide().radius((d: any) => nodeRadius(d.tags.length) + 12));
 
-    const drag = d3
-      .drag<SVGGElement, any>()
+    const dragBehavior = drag<SVGGElement, any>()
       .on("start", (event, d) => {
         if (!event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
@@ -248,7 +266,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
         d.fy = null;
       });
 
-    nodes.call(drag as any);
+    nodes.call(dragBehavior as any);
 
     simulation.on("tick", () => {
       links
@@ -260,14 +278,13 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       nodes.attr("transform", (d: any) => `translate(${d.x}, ${d.y})`);
     });
 
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
+    const zoomBehavior = zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.4, 2.5])
       .on("zoom", (event) => {
         root.attr("transform", event.transform.toString());
       });
 
-    svg.call(zoom as any);
+    svg.call(zoomBehavior as any);
 
     return () => {
       simulation.stop();
@@ -284,7 +301,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     const observer = new ResizeObserver(() => {
       const width = wrapperElement.clientWidth;
       const height = Math.max(560, Math.min(900, wrapperElement.clientHeight || 720));
-      d3.select(svgElement).attr("viewBox", `0 0 ${width} ${height}`);
+      select(svgElement).attr("viewBox", `0 0 ${width} ${height}`);
     });
 
     observer.observe(wrapperElement);

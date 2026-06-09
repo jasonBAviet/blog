@@ -29,8 +29,20 @@ function normalizeTag(tag: string): string {
   return tag.trim().toLowerCase();
 }
 
-function uniqueTags(tags: string[] = []): string[] {
-  return Array.from(new Set(tags.map(normalizeTag).filter(Boolean)));
+function coerceTags(tags: unknown): string[] {
+  if (Array.isArray(tags)) {
+    return tags.map((tag) => String(tag));
+  }
+
+  if (typeof tags === "string") {
+    return tags.split(",");
+  }
+
+  return [];
+}
+
+function uniqueTags(tags: unknown): string[] {
+  return Array.from(new Set(coerceTags(tags).map(normalizeTag).filter(Boolean)));
 }
 
 function getRelationStrength(weight: number): "weak" | "medium" | "strong" {
