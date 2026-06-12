@@ -2,6 +2,7 @@ export interface Post {
   slug: string;
   title: string;
   content: string;
+  summary?: string;
   category: string;
   categoryName?: string;
   tags?: string[];
@@ -15,6 +16,11 @@ export interface Post {
 
 export interface Category {
   slug: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface Tag {
   name: string;
   createdAt: string;
 }

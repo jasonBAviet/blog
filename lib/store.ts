@@ -1,18 +1,22 @@
-import { Post, Category, Comment } from "@/types";
+import { Post, Category, Tag, Comment } from "@/types";
 import { prisma } from "@/lib/db";
-import type { Post as PrismaPost, Comment as PrismaComment, Category as PrismaCategory } from "@prisma/client";
+import type {
+  Post as PrismaPost,
+  Comment as PrismaComment,
+  Category as PrismaCategory,
+  Tag as PrismaTag,
+} from "@prisma/client";
+
+// --- Types ---
+
+type PostWithRelations = PrismaPost & {
+  categoryRef: PrismaCategory;
+  tagRefs: PrismaTag[];
+};
+
+const POST_INCLUDE = { categoryRef: true, tagRefs: true } as const;
 
 // --- JSON helpers ---
-
-function parseTags(raw: string | null): string[] | undefined {
-  if (!raw) return undefined;
-  try {
-    const t = JSON.parse(raw);
-    return Array.isArray(t) && t.length ? t : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 function parseReactions(raw: string | null): Record<string, number> | undefined {
   if (!raw) return undefined;
@@ -33,14 +37,15 @@ function parseImages(raw: string | null): string[] | undefined {
   }
 }
 
-function toPost(p: PrismaPost): Post {
+function toPost(p: PostWithRelations): Post {
   return {
     slug: p.slug,
     title: p.title,
     content: p.content,
+    summary: p.summary ?? undefined,
     category: p.category,
-    categoryName: p.categoryName ?? undefined,
-    tags: parseTags(p.tags),
+    categoryName: p.categoryRef?.name ?? undefined,
+    tags: p.tagRefs.length ? p.tagRefs.map((t) => t.name) : undefined,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt?.toISOString(),
     views: p.views,
@@ -58,6 +63,13 @@ function toCategory(c: PrismaCategory): Category {
   };
 }
 
+function toTag(t: PrismaTag): Tag {
+  return {
+    name: t.name,
+    createdAt: t.createdAt.toISOString(),
+  };
+}
+
 function toComment(c: PrismaComment): Comment {
   return {
     id: c.id,
@@ -68,10 +80,24 @@ function toComment(c: PrismaComment): Comment {
   };
 }
 
+// --- Tag upsert helper ---
+
+async function upsertTags(names: string[]): Promise<void> {
+  if (!names.length) return;
+  await Promise.all(
+    names.map((name) =>
+      prisma.tag.upsert({ where: { name }, update: {}, create: { name } })
+    )
+  );
+}
+
 // --- Posts ---
 
 export async function getAllPosts(): Promise<Post[]> {
-  const rows = await prisma.post.findMany({ orderBy: { createdAt: "desc" } });
+  const rows = await prisma.post.findMany({
+    include: POST_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
   return rows.map(toPost);
 }
 
@@ -79,6 +105,7 @@ export async function getPaginatedPosts(page: number, limit: number) {
   const [total, rows] = await Promise.all([
     prisma.post.count(),
     prisma.post.findMany({
+      include: POST_INCLUDE,
       orderBy: { createdAt: "desc" },
       skip: (Math.max(1, page) - 1) * limit,
       take: limit,
@@ -90,39 +117,48 @@ export async function getPaginatedPosts(page: number, limit: number) {
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {
-  const p = await prisma.post.findUnique({ where: { slug } });
+  const p = await prisma.post.findUnique({ where: { slug }, include: POST_INCLUDE });
   return p ? toPost(p) : undefined;
 }
 
 export async function createPost(post: Omit<Post, "views"> & { views?: number }): Promise<void> {
+  const tagNames = post.tags ?? [];
+  await upsertTags(tagNames);
+
   await prisma.post.create({
     data: {
       slug: post.slug,
       title: post.title,
       content: post.content,
+      summary: post.summary ?? null,
       category: post.category,
-      categoryName: post.categoryName ?? null,
-      tags: post.tags ? JSON.stringify(post.tags) : null,
       createdAt: new Date(post.createdAt),
       views: post.views ?? 0,
       reactions: post.reactions ? JSON.stringify(post.reactions) : null,
       coverImage: post.coverImage ?? null,
       images: post.images ? JSON.stringify(post.images) : null,
+      tagRefs: tagNames.length ? { connect: tagNames.map((name) => ({ name })) } : undefined,
     },
   });
 }
 
 export async function updatePost(slug: string, data: Partial<Post>): Promise<void> {
+  if (data.tags !== undefined) {
+    await upsertTags(data.tags);
+  }
+
   await prisma.post.update({
     where: { slug },
     data: {
       ...(data.title !== undefined && { title: data.title }),
       ...(data.content !== undefined && { content: data.content }),
+      ...(data.summary !== undefined && { summary: data.summary }),
       ...(data.category !== undefined && { category: data.category }),
-      ...(data.categoryName !== undefined && { categoryName: data.categoryName }),
-      ...(data.tags !== undefined && { tags: JSON.stringify(data.tags) }),
       ...(data.coverImage !== undefined && { coverImage: data.coverImage }),
       ...(data.images !== undefined && { images: JSON.stringify(data.images) }),
+      ...(data.tags !== undefined && {
+        tagRefs: { set: data.tags.map((name) => ({ name })) },
+      }),
       updatedAt: new Date(),
     },
   });
@@ -140,34 +176,31 @@ export async function incrementViews(slug: string): Promise<void> {
 }
 
 export async function getPostsByTag(tag: string): Promise<Post[]> {
-  const rows = await prisma.post.findMany({ orderBy: { createdAt: "desc" } });
-  const norm = tag.toLowerCase();
-  return rows.map(toPost).filter((p) => p.tags?.some((t) => t.toLowerCase() === norm));
+  const rows = await prisma.post.findMany({
+    where: { tagRefs: { some: { name: { equals: tag, mode: "insensitive" } } } },
+    include: POST_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toPost);
 }
 
 export async function getAllTags(): Promise<{ tag: string; count: number }[]> {
-  const rows = await prisma.post.findMany({ select: { tags: true } });
-  const tagMap = new Map<string, number>();
-  for (const row of rows) {
-    const tags = parseTags(row.tags) ?? [];
-    for (const t of tags) {
-      const norm = t.toLowerCase();
-      tagMap.set(norm, (tagMap.get(norm) ?? 0) + 1);
-    }
-  }
-  return Array.from(tagMap.entries())
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count);
+  const tags = await prisma.tag.findMany({
+    where: { posts: { some: {} } },
+    include: { _count: { select: { posts: true } } },
+    orderBy: { posts: { _count: "desc" } },
+  });
+  return tags.map((t) => ({ tag: t.name, count: t._count.posts }));
 }
 
-export async function incrementReaction(slug: string, type: string): Promise<Record<string, number>> {
+export async function incrementReaction(
+  slug: string,
+  type: string
+): Promise<Record<string, number>> {
   const p = await prisma.post.findUnique({ where: { slug }, select: { reactions: true } });
   const reactions = parseReactions(p?.reactions ?? null) ?? {};
   reactions[type] = (reactions[type] ?? 0) + 1;
-  await prisma.post.update({
-    where: { slug },
-    data: { reactions: JSON.stringify(reactions) },
-  });
+  await prisma.post.update({ where: { slug }, data: { reactions: JSON.stringify(reactions) } });
   return reactions;
 }
 
@@ -196,14 +229,32 @@ export async function createCategory(category: Category): Promise<void> {
 export async function updateCategory(slug: string, data: Partial<Category>): Promise<void> {
   await prisma.category.update({
     where: { slug },
-    data: {
-      ...(data.name !== undefined && { name: data.name }),
-    },
+    data: { ...(data.name !== undefined && { name: data.name }) },
   });
 }
 
 export async function deleteCategory(slug: string): Promise<void> {
   await prisma.category.delete({ where: { slug } });
+}
+
+// --- Tags master data ---
+
+export async function getAllTagsMaster(): Promise<Tag[]> {
+  const rows = await prisma.tag.findMany({ orderBy: { name: "asc" } });
+  return rows.map(toTag);
+}
+
+export async function createTag(name: string): Promise<Tag> {
+  const t = await prisma.tag.upsert({
+    where: { name },
+    update: {},
+    create: { name },
+  });
+  return toTag(t);
+}
+
+export async function deleteTag(name: string): Promise<void> {
+  await prisma.tag.delete({ where: { name } });
 }
 
 // --- Comments ---
@@ -246,8 +297,16 @@ export async function getStats() {
       prisma.comment.count(),
       prisma.category.count(),
       prisma.post.aggregate({ _sum: { views: true } }),
-      prisma.post.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
-      prisma.post.findMany({ orderBy: { views: "desc" }, take: 5 }),
+      prisma.post.findMany({
+        include: POST_INCLUDE,
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prisma.post.findMany({
+        include: POST_INCLUDE,
+        orderBy: { views: "desc" },
+        take: 5,
+      }),
     ]);
   return {
     totalPosts,

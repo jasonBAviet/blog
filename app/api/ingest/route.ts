@@ -32,10 +32,20 @@ async function ingestOne(article: ArticleInput) {
     return { duplicate: true, slug };
   }
 
-  // Ensure the category exists, fall back to default
+  // Ensure category exists, fall back to default
   const categorySlug = category ?? "cong-nghe";
   const catExists = await prisma.category.findUnique({ where: { slug: categorySlug } });
   const resolvedCategory = catExists ? categorySlug : "cong-nghe";
+
+  // Upsert tags as master data
+  const tagNames = tags ?? [];
+  if (tagNames.length) {
+    await Promise.all(
+      tagNames.map((name) =>
+        prisma.tag.upsert({ where: { name }, update: {}, create: { name } })
+      )
+    );
+  }
 
   const post = await prisma.post.create({
     data: {
@@ -44,8 +54,7 @@ async function ingestOne(article: ArticleInput) {
       content: content.trim(),
       summary: summary?.trim() ?? null,
       category: resolvedCategory,
-      categoryName: catExists?.name ?? "Công nghệ",
-      tags: tags?.length ? JSON.stringify(tags) : null,
+      tagRefs: tagNames.length ? { connect: tagNames.map((name) => ({ name })) } : undefined,
       createdAt: new Date(),
       views: 0,
       source: "api",
@@ -54,7 +63,7 @@ async function ingestOne(article: ArticleInput) {
     },
   });
 
-  return { duplicate: false, slug: post.slug, post };
+  return { duplicate: false, slug: post.slug };
 }
 
 export async function POST(request: NextRequest) {
@@ -100,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     revalidatePath("/", "layout");
-    return NextResponse.json({ success: true, slug: result.slug, post: result.post }, { status: 201 });
+    return NextResponse.json({ success: true, slug: result.slug }, { status: 201 });
   } catch (err) {
     console.error("[ingest]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

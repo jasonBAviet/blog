@@ -12,7 +12,6 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool, { schema });
 const prisma = new PrismaClient({ adapter });
 
-// Inline the categories instead of importing to avoid path alias issues
 const mockCategories = [
   { slug: "cong-nghe", name: "Công nghệ", createdAt: "2026-01-01" },
   { slug: "doi-song", name: "Đời sống", createdAt: "2026-01-01" },
@@ -20,7 +19,6 @@ const mockCategories = [
   { slug: "lap-trinh", name: "Lập trình", createdAt: "2026-01-01" },
 ];
 
-// Simplified source post loader (mirrors lib/source-posts.ts logic)
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -108,10 +106,8 @@ function loadSourcePosts() {
         title: (frontmatter.title as string) || dateStr,
         content: mdToHtml(body),
         category: (frontmatter.category as string) || "suy-ngam",
-        categoryName: (frontmatter.categoryName as string) || "Suy ngẫm",
-        tags: Array.isArray(frontmatter.tags) ? (frontmatter.tags as string[]) : undefined,
+        tags: Array.isArray(frontmatter.tags) ? (frontmatter.tags as string[]) : [],
         createdAt: isoDate,
-        views: 0,
         coverImage,
         images: extraImages.length ? extraImages : undefined,
       });
@@ -121,46 +117,60 @@ function loadSourcePosts() {
 }
 
 async function main() {
+  // 1. Seed categories
   console.log("Seeding categories...");
   for (const cat of mockCategories) {
     await prisma.category.upsert({
       where: { slug: cat.slug },
       update: { name: cat.name },
-      create: {
-        slug: cat.slug,
-        name: cat.name,
-        createdAt: new Date(cat.createdAt),
-      },
+      create: { slug: cat.slug, name: cat.name, createdAt: new Date(cat.createdAt) },
     });
   }
-  console.log(`✓ ${mockCategories.length} categories seeded`);
+  console.log(`✓ ${mockCategories.length} categories`);
 
-  console.log("Seeding source posts...");
+  // 2. Load posts from source files
   const validCategorySlugs = new Set(mockCategories.map((c) => c.slug));
-  const posts = loadSourcePosts();
+  const sourcePosts = loadSourcePosts();
+
+  // 3. Collect & seed all unique tags as master data
+  console.log("Seeding tags...");
+  const allTagNames = new Set<string>();
+  for (const post of sourcePosts) {
+    for (const t of post.tags) allTagNames.add(t);
+  }
+  for (const name of allTagNames) {
+    await prisma.tag.upsert({ where: { name }, update: {}, create: { name } });
+  }
+  console.log(`✓ ${allTagNames.size} tags`);
+
+  // 4. Seed posts + connect tags
+  console.log("Seeding posts...");
   let seeded = 0;
-  for (const post of posts) {
+  for (const post of sourcePosts) {
     const category = validCategorySlugs.has(post.category) ? post.category : "suy-ngam";
     await prisma.post.upsert({
       where: { slug: post.slug },
-      update: {},
+      update: {
+        tagRefs: post.tags.length
+          ? { set: post.tags.map((name) => ({ name })) }
+          : { set: [] },
+      },
       create: {
         slug: post.slug,
         title: post.title,
         content: post.content,
         category,
-        categoryName: post.categoryName ?? null,
-        tags: post.tags ? JSON.stringify(post.tags) : null,
         createdAt: new Date(post.createdAt),
         views: 0,
         coverImage: post.coverImage ?? null,
         images: post.images ? JSON.stringify(post.images) : null,
         source: "markdown",
+        tagRefs: post.tags.length ? { connect: post.tags.map((name) => ({ name })) } : undefined,
       },
     });
     seeded++;
   }
-  console.log(`✓ ${seeded} posts seeded`);
+  console.log(`✓ ${seeded} posts`);
 }
 
 main()

@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, title, content, category, categoryName, coverImage, images } = body;
+    const { slug, title, content, summary, category, tags, coverImage, images } = body;
     if (!slug || !title || !content || !category) {
       return NextResponse.json({ error: "Thiếu thông tin bài viết" }, { status: 400 });
     }
@@ -21,8 +21,9 @@ export async function POST(request: Request) {
       slug,
       title,
       content,
+      summary: summary || undefined,
       category,
-      categoryName: categoryName || category,
+      tags: Array.isArray(tags) && tags.length ? tags : undefined,
       createdAt: new Date().toISOString(),
       views: 0,
       coverImage: coverImage || undefined,

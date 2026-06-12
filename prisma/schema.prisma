@@ -13,24 +13,29 @@ model Category {
   posts     Post[]
 }
 
+model Tag {
+  name      String   @id
+  createdAt DateTime @default(now())
+  posts     Post[]
+}
+
 model Post {
-  slug         String    @id
-  title        String
-  content      String    @db.Text
-  summary      String?   @db.Text
-  category     String
-  categoryRef  Category  @relation(fields: [category], references: [slug])
-  categoryName String?
-  tags         String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime?
-  views        Int       @default(0)
-  reactions    String?
-  coverImage   String?
-  images       String?
-  source       String    @default("manual")
-  sourceUrl    String?
-  comments     Comment[]
+  slug       String    @id
+  title      String
+  content    String    @db.Text
+  summary    String?   @db.Text
+  category   String
+  categoryRef Category @relation(fields: [category], references: [slug])
+  tagRefs    Tag[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime?
+  views      Int       @default(0)
+  reactions  String?
+  coverImage String?
+  images     String?
+  source     String    @default("manual")
+  sourceUrl  String?
+  comments   Comment[]
 
   @@index([category])
   @@index([createdAt(sort: Desc)])
