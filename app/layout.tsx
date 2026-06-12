@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BackToTop } from "@/components/ui/BackToTop";
+import { SidebarPanel } from "@/components/layout/SidebarPanel";
+import { getAllPosts } from "@/lib/store";
 import "./globals.css";
 
 const fontSansVN = Be_Vietnam_Pro({
@@ -29,11 +31,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const allPosts = await getAllPosts();
+  const sidebarPosts = allPosts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    createdAt: p.createdAt,
+    category: p.category,
+    categoryName: p.categoryName,
+    tags: p.tags,
+  }));
+
   return (
     <html
       lang="vi"
@@ -47,6 +59,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <BackToTop />
+          <SidebarPanel posts={sidebarPosts} />
         </ThemeProvider>
       </body>
     </html>
