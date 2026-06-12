@@ -15,6 +15,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Loai reaction khong hop le" }, { status: 400 });
   }
 
-  const reactions = incrementReaction(slug, type);
+  const reactions = await incrementReaction(slug, type);
   return NextResponse.json({ reactions });
 }

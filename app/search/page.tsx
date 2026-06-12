@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     );
   }
 
-  const results = searchPosts(query);
+  const results = await searchPosts(query);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">

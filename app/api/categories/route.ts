@@ -3,7 +3,7 @@ import { getAllCategories, createCategory } from "@/lib/store";
 
 export async function GET() {
   try {
-    const categories = getAllCategories();
+    const categories = await getAllCategories();
     return NextResponse.json(categories);
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!slug || !name) {
       return NextResponse.json({ error: "Thiếu slug hoặc name" }, { status: 400 });
     }
-    createCategory({ slug, name, createdAt: createdAt || new Date().toISOString() });
+    await createCategory({ slug, name, createdAt: createdAt || new Date().toISOString() });
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });

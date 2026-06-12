@@ -7,12 +7,12 @@ export async function PUT(
 ) {
   try {
     const { slug } = await params;
-    const existing = getCategoryBySlug(slug);
+    const existing = await getCategoryBySlug(slug);
     if (!existing) {
       return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
     }
     const body = await request.json();
-    updateCategory(slug, body);
+    await updateCategory(slug, body);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
@@ -25,11 +25,11 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
-    const existing = getCategoryBySlug(slug);
+    const existing = await getCategoryBySlug(slug);
     if (!existing) {
       return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
     }
-    deleteCategory(slug);
+    await deleteCategory(slug);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });

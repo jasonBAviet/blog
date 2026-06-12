@@ -3,7 +3,7 @@ import { getAllPosts, createPost } from "@/lib/store";
 
 export async function GET() {
   try {
-    const posts = getAllPosts();
+    const posts = await getAllPosts();
     return NextResponse.json(posts);
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!slug || !title || !content || !category) {
       return NextResponse.json({ error: "Thiếu thông tin bài viết" }, { status: 400 });
     }
-    createPost({
+    await createPost({
       slug,
       title,
       content,

@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  slug      String   @id
+  name      String
+  createdAt DateTime @default(now())
+  posts     Post[]
+}
+
+model Post {
+  slug         String    @id
+  title        String
+  content      String    @db.Text
+  summary      String?   @db.Text
+  category     String
+  categoryRef  Category  @relation(fields: [category], references: [slug])
+  categoryName String?
+  tags         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime?
+  views        Int       @default(0)
+  reactions    String?
+  coverImage   String?
+  images       String?
+  source       String    @default("manual")
+  sourceUrl    String?
+  comments     Comment[]
+
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Comment {
+  id         String   @id
+  postSlug   String
+  post       Post     @relation(fields: [postSlug], references: [slug], onDelete: Cascade)
+  authorName String
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([postSlug])
+}

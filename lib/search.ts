@@ -31,12 +31,12 @@ export interface SearchResult {
   matchedInTitle: boolean;
 }
 
-export function searchPosts(query: string): SearchResult[] {
+export async function searchPosts(query: string): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) return [];
 
   const normalizedQuery = normalize(query.trim());
   const rawQuery = query.trim().toLowerCase();
-  const posts = getAllPosts();
+  const posts = await getAllPosts();
 
   return posts
     .map((post) => {

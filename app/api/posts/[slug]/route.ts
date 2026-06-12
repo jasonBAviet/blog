@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const post = getPostBySlug(slug);
+    const post = await getPostBySlug(slug);
     if (!post) {
       return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
     }
@@ -23,12 +23,12 @@ export async function PUT(
 ) {
   try {
     const { slug } = await params;
-    const existing = getPostBySlug(slug);
+    const existing = await getPostBySlug(slug);
     if (!existing) {
       return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
     }
     const body = await request.json();
-    updatePost(slug, body);
+    await updatePost(slug, body);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
@@ -41,11 +41,11 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
-    const existing = getPostBySlug(slug);
+    const existing = await getPostBySlug(slug);
     if (!existing) {
       return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
     }
-    deletePost(slug);
+    await deletePost(slug);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });

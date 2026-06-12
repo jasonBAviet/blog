@@ -17,18 +17,18 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
   if (!category) return { title: "Khong tim thay" };
   return { title: category.name };
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category) notFound();
 
-  const allPosts = getAllPosts().filter((p) => p.category === slug);
+  const allPosts = (await getAllPosts()).filter((p) => p.category === slug);
   const { page: pageParam } = await searchParams;
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10) || 1);
   const totalPages = Math.max(1, Math.ceil(allPosts.length / POSTS_PER_PAGE));

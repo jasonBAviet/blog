@@ -9,6 +9,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [], total: 0 });
   }
 
-  const results = searchPosts(q);
+  const results = await searchPosts(q);
   return NextResponse.json({ results, total: results.length });
 }

@@ -17,8 +17,8 @@ export default async function HomePage({ searchParams }: PageProps) {
   const { page: pageParam, view } = await searchParams;
   const currentView = view === "kg" ? "kg" : "list";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10) || 1);
-  const { posts, totalPages, page } = getPaginatedPosts(currentPage, POSTS_PER_PAGE);
-  const allPosts = getAllPosts();
+  const { posts, totalPages, page } = await getPaginatedPosts(currentPage, POSTS_PER_PAGE);
+  const allPosts = await getAllPosts();
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">

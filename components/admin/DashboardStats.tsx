@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getStats } from "@/lib/store";
 
-export function DashboardStats() {
-  const stats = getStats();
+export async function DashboardStats() {
+  const stats = await getStats();
 
   const cards = [
     { label: "Tổng bài viết", value: stats.totalPosts },
