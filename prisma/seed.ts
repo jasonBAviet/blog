@@ -7,9 +7,8 @@ import { config } from "dotenv";
 
 config({ path: path.join(process.cwd(), ".env.local") });
 
-const schema = process.env.BLOG_DB_SCHEMA ?? "public";
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool, { schema });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const mockCategories = [

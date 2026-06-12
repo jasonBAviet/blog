@@ -8,8 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const schema = process.env.BLOG_DB_SCHEMA ?? "public";
-  const adapter = new PrismaPg(pool, { schema });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
