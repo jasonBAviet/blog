@@ -16,7 +16,41 @@ const mockCategories = [
   { slug: "doi-song", name: "Đời sống", createdAt: "2026-01-01" },
   { slug: "suy-ngam", name: "Suy ngẫm", createdAt: "2026-01-01" },
   { slug: "lap-trinh", name: "Lập trình", createdAt: "2026-01-01" },
+  { slug: "phat-giao", name: "Phật giáo", createdAt: "2026-01-01" },
+  { slug: "triet-hoc", name: "Triết học", createdAt: "2026-01-01" },
+  { slug: "tam-ly", name: "Tâm lý", createdAt: "2026-01-01" },
+  { slug: "van-hoc", name: "Văn học", createdAt: "2026-01-01" },
+  { slug: "van-hoa", name: "Văn hóa", createdAt: "2026-01-01" },
+  { slug: "huong-dan", name: "Hướng dẫn", createdAt: "2026-01-01" },
 ];
+
+function classifyByTitle(title: string): string {
+  const t = (title || "").toLowerCase();
+  if (t.includes('phật giáo') || t.includes('bụt') || t.includes('tuệ sỹ') || t.includes('công đức')) return 'phat-giao';
+  if (t.includes('triết học')) return 'triet-hoc';
+  if (t.includes('thơ') || t.includes('văn học')) return 'van-hoc';
+  if (t.includes('âm nhạc') || t.includes('ẩm thực') || t.includes('world cup') || t.includes('văn hóa')) return 'van-hoa';
+  if (t.includes('tâm lý') || t.includes('phụ nữ')) return 'tam-ly';
+  if (t.includes('lập trình') || t.includes('code') || t.includes('terraform') || t.includes('kafka') || t.includes('azure') || t.includes('openai') || t.includes('latency') || t.includes('software development')) return 'lap-trinh';
+  if (t.includes('ai') || t.includes('công nghệ') || t.includes('technology') || t.includes('tokenized') || t.includes('ev transition') || t.includes('steve jobs') || t.includes('innovation')) return 'cong-nghe';
+  if (t.includes('product-market fit') || t.includes('build-or-buy') || t.includes('hướng dẫn')) return 'huong-dan';
+  if (t.includes('ceo') || t.includes('chill life') || t.includes('employee')) return 'doi-song';
+  return 'suy-ngam';
+}
+
+function mapCategorySlug(categoryName: string, title?: string): string {
+  const norm = categoryName.toLowerCase().trim();
+  if (norm === "technology") return "cong-nghe";
+  if (norm === "lifestyle") return "doi-song";
+  if (norm === "psychology") return "tam-ly";
+  if (norm === "buddhism") return "phat-giao";
+  if (norm === "philosophy") return "triet-hoc";
+  if (norm === "literature") return "van-hoc";
+  if (norm === "culture") return "van-hoa";
+  if (norm === "guide") return "huong-dan";
+  if (title) return classifyByTitle(title);
+  return "suy-ngam";
+}
 
 function slugify(text: string): string {
   return text
@@ -104,7 +138,7 @@ function loadSourcePosts() {
         slug: (frontmatter.slug as string) || slugify(dateStr),
         title: (frontmatter.title as string) || dateStr,
         content: mdToHtml(body),
-        category: (frontmatter.category as string) || "suy-ngam",
+        category: mapCategorySlug((frontmatter.category as string) || "", (frontmatter.title as string) || dateStr),
         tags: Array.isArray(frontmatter.tags) ? (frontmatter.tags as string[]) : [],
         createdAt: isoDate,
         coverImage,

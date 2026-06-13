@@ -8,15 +8,40 @@ import {
   forceLink,
   forceManyBody,
   forceSimulation,
+  forceX,
+  forceY,
 } from "d3-force";
 import { drag } from "d3-drag";
 import { zoom } from "d3-zoom";
 import { Post } from "@/types";
-import { buildKnowledgeGraph } from "@/src/core/utils/knowledge-graph";
 import { formatDate } from "@/src/core/utils/utils";
 
 interface KnowledgeGraphProps {
   posts: Post[];
+}
+
+interface GraphNode {
+  id: string;
+  slug: string;
+  title: string;
+  tags: string[];
+  categoryName: string;
+  createdAt: string;
+  views: number;
+}
+
+interface GraphLink {
+  source: any;
+  target: any;
+  weight: number;
+  relationType: string;
+  relationStrength: string;
+  relationLabel: string;
+}
+
+interface GraphData {
+  nodes: GraphNode[];
+  links: GraphLink[];
 }
 
 const CATEGORY_COLORS = [
@@ -34,58 +59,49 @@ function nodeRadius(tagCount: number): number {
   return 6 + Math.min(tagCount, 5) * 1.2;
 }
 
-function normalizeTag(tag: string): string {
-  return tag.trim().toLowerCase();
-}
-
-function getTags(input: unknown): string[] {
-  if (Array.isArray(input)) {
-    return input.map((tag) => String(tag));
-  }
-
-  if (typeof input === "string") {
-    return input.split(",");
-  }
-
-  return [];
-}
-
 export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
-  const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [threshold, setThreshold] = useState<number>(0.4);
+  const [graph, setGraph] = useState<GraphData>({ nodes: [], links: [] });
+  const [loading, setLoading] = useState<boolean>(true);
+  
   const svgRef = useRef<SVGSVGElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  const tagOptions = useMemo(() => {
-    const tagMap = new Map<string, string>();
+  // Fetch dữ liệu từ API khi threshold thay đổi
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
 
-    posts.forEach((post) => {
-      getTags(post.tags).forEach((tag) => {
-        const normalized = normalizeTag(tag);
-        if (!normalized || tagMap.has(normalized)) return;
-        tagMap.set(normalized, tag.trim());
-      });
-    });
+    async function fetchGraphData() {
+      try {
+        const res = await fetch(`/api/kg?threshold=${threshold}`);
+        if (!res.ok) throw new Error("Lỗi tải đồ thị");
+        const data = await res.json();
+        if (isMounted) {
+          setGraph(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
 
-    return Array.from(tagMap.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, "vi"));
-  }, [posts]);
+    fetchGraphData();
 
-  const filteredPosts = useMemo(() => {
-    if (selectedTag === "all") return posts;
-    return posts.filter((post) =>
-      getTags(post.tags).some((tag) => normalizeTag(tag) === selectedTag)
-    );
-  }, [posts, selectedTag]);
-
-  const graph = useMemo(() => buildKnowledgeGraph(filteredPosts), [filteredPosts]);
+    return () => {
+      isMounted = false;
+    };
+  }, [threshold]);
 
   const categoryMeta = useMemo(() => {
     const map = new Map<string, { label: string; count: number; color: string }>();
     let colorIndex = 0;
 
     graph.nodes.forEach((node) => {
-      const categoryLabel = (node.categoryName || "Không phân loại").trim() || "Không phân loại";
+      const categoryLabel = (node.categoryName || "Không phân loại").trim();
       const key = categoryLabel.toLowerCase();
       const existing = map.get(key);
       if (existing) {
@@ -106,22 +122,21 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
 
   const categoryColorByNodeId = useMemo(() => {
     const nodeColorMap = new Map<string, string>();
-
     graph.nodes.forEach((node) => {
-      const categoryLabel = (node.categoryName || "Không phân loại").trim() || "Không phân loại";
+      const categoryLabel = (node.categoryName || "Không phân loại").trim();
       const key = categoryLabel.toLowerCase();
       const meta = categoryMeta.get(key);
       nodeColorMap.set(node.id, meta?.color || "#374151");
     });
-
     return nodeColorMap;
   }, [graph.nodes, categoryMeta]);
 
+  // Vẽ đồ thị D3
   useEffect(() => {
     const svgElement = svgRef.current;
     const wrapperElement = wrapperRef.current;
 
-    if (!svgElement || !wrapperElement) return;
+    if (!svgElement || !wrapperElement || graph.nodes.length === 0) return;
 
     const width = wrapperElement.clientWidth;
     const height = Math.max(560, Math.min(900, wrapperElement.clientHeight || 720));
@@ -138,15 +153,10 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       .selectAll("line")
       .data(graph.links)
       .join("line")
-      .attr("data-source", (d) => d.source)
-      .attr("data-target", (d) => d.target)
       .attr("stroke", "rgba(120, 120, 120, 0.28)")
-      .attr("stroke-width", (d) => Math.min(1 + d.weight * 0.7, 4));
+      .attr("stroke-width", (d) => Math.min(1 + d.weight * 3, 5));
 
-    links.append("title").text((d) => {
-      const tags = d.sharedTags.join(", ");
-      return `${d.relationLabel}\nLoại: ${d.relationType}\nĐộ mạnh: ${d.relationStrength}\nTag: ${tags}`;
-    });
+    links.append("title").text((d) => d.relationLabel);
 
     const nodes = nodeLayer
       .selectAll("g")
@@ -159,10 +169,8 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       .append("circle")
       .attr("r", (d) => nodeRadius(d.tags.length))
       .attr("fill", (d) => categoryColorByNodeId.get(d.id) || "#374151")
-      .attr("stroke", (d) => (d.tags.length === 0 ? "rgba(150,150,150,0.5)" : "#f5f5f5"))
-      .attr("stroke-width", (d) => (d.tags.length === 0 ? 1 : 1.5))
-      .attr("stroke-dasharray", (d) => (d.tags.length === 0 ? "3,2" : "none"))
-      .attr("opacity", (d) => (d.tags.length === 0 ? 0.6 : 1));
+      .attr("stroke", "#f5f5f5")
+      .attr("stroke-width", 1.5);
 
     nodes
       .append("text")
@@ -170,9 +178,10 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       .attr("x", 0)
       .attr("y", 18)
       .attr("text-anchor", "middle")
-      .attr("font-size", 11)
+      .attr("font-size", 10)
       .attr("fill", "currentColor")
-      .attr("class", "select-none fill-neutral-600 dark:fill-neutral-300");
+      .attr("class", "select-none fill-neutral-600 dark:fill-neutral-300")
+      .attr("opacity", 0);
 
     nodes.append("title").text((d) => {
       const tags = d.tags.length > 0 ? d.tags.join(", ") : "Không có tag";
@@ -184,52 +193,44 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       neighborMap.set(node.id, new Set([node.id]));
     });
     graph.links.forEach((link) => {
-      const sourceNeighbors = neighborMap.get(link.source);
-      const targetNeighbors = neighborMap.get(link.target);
-      sourceNeighbors?.add(link.target);
-      targetNeighbors?.add(link.source);
+      const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+      const targetId = typeof link.target === "object" ? link.target.id : link.target;
+      neighborMap.get(sourceId)?.add(targetId);
+      neighborMap.get(targetId)?.add(sourceId);
     });
 
     const resetHighlight = () => {
-      links
-        .attr("opacity", 1)
-        .attr("stroke", "rgba(120, 120, 120, 0.28)");
-
-      nodes
-        .select("circle")
-        .attr("opacity", (d) => (d.tags.length === 0 ? 0.6 : 1))
-        .attr("stroke-width", (d) => (d.tags.length === 0 ? 1 : 1.5))
-        .attr("stroke", (d) => (d.tags.length === 0 ? "rgba(150,150,150,0.5)" : "#f5f5f5"));
-
-      nodes
-        .select("text")
-        .attr("opacity", 1)
-        .attr("font-weight", 400);
+      links.attr("opacity", 0.6).attr("stroke", "rgba(120, 120, 120, 0.2)");
+      nodes.select("circle").attr("opacity", 1).attr("stroke-width", 1.5).attr("stroke", "#f5f5f5");
+      nodes.select("text").attr("opacity", 0);
     };
 
     nodes
       .on("mouseenter", (_, hoveredNode) => {
         const neighbors = neighborMap.get(hoveredNode.id) ?? new Set([hoveredNode.id]);
-
         links
-          .attr("opacity", (link) =>
-            link.source === hoveredNode.id || link.target === hoveredNode.id ? 1 : 0.12
-          )
-          .attr("stroke", (link) =>
-            link.source === hoveredNode.id || link.target === hoveredNode.id
-              ? "rgba(30, 41, 59, 0.75)"
-              : "rgba(120, 120, 120, 0.18)"
-          );
+          .attr("opacity", (link) => {
+            const sId = typeof link.source === "object" ? link.source.id : link.source;
+            const tId = typeof link.target === "object" ? link.target.id : link.target;
+            return sId === hoveredNode.id || tId === hoveredNode.id ? 1 : 0.05;
+          })
+          .attr("stroke", (link) => {
+            const sId = typeof link.source === "object" ? link.source.id : link.source;
+            const tId = typeof link.target === "object" ? link.target.id : link.target;
+            return sId === hoveredNode.id || tId === hoveredNode.id
+              ? "#3b82f6"
+              : "rgba(120, 120, 120, 0.05)";
+          });
 
         nodes
           .select("circle")
-          .attr("opacity", (node) => (neighbors.has(node.id) ? 1 : 0.2))
-          .attr("stroke-width", (node) => (node.id === hoveredNode.id ? 3 : 1.5))
-          .attr("stroke", (node) => (node.id === hoveredNode.id ? "#0f172a" : "#f5f5f5"));
+          .attr("opacity", (node) => (neighbors.has(node.id) ? 1 : 0.15))
+          .attr("stroke-width", (node) => (node.id === hoveredNode.id ? 2.5 : 1.5))
+          .attr("stroke", (node) => (node.id === hoveredNode.id ? "#3b82f6" : "#f5f5f5"));
 
         nodes
           .select("text")
-          .attr("opacity", (node) => (neighbors.has(node.id) ? 1 : 0.35))
+          .attr("opacity", (node) => (neighbors.has(node.id) ? 1 : 0))
           .attr("font-weight", (node) => (node.id === hoveredNode.id ? 600 : 400));
       })
       .on("mouseleave", resetHighlight);
@@ -245,12 +246,14 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
         "link",
         forceLink(graph.links)
           .id((d: any) => d.id)
-          .distance((d: any) => 150 - Math.min(d.weight, 4) * 12)
-          .strength(0.4)
+          .distance((d: any) => 120 - Math.min(d.weight, 1) * 60)
+          .strength(0.5)
       )
-      .force("charge", forceManyBody().strength(-240))
-      .force("center", forceCenter(width / 2, height / 2))
-      .force("collision", forceCollide().radius((d: any) => nodeRadius(d.tags.length) + 12));
+      .force("charge", forceManyBody().strength(-200))
+      .force("center", forceCenter(width / 2, height / 2).strength(0.08))
+      .force("collision", forceCollide().radius((d: any) => nodeRadius(d.tags.length) + 12))
+      .force("boundX", forceX(width / 2).strength(0.04))
+      .force("boundY", forceY(height / 2).strength(0.04));
 
     const dragBehavior = drag<SVGGElement, any>()
       .on("start", (event, d) => {
@@ -281,7 +284,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     });
 
     const zoomBehavior = zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.4, 2.5])
+      .scaleExtent([0.3, 3.0])
       .on("zoom", (event) => {
         root.attr("transform", event.transform.toString());
       });
@@ -311,82 +314,75 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
   }, []);
 
   const isEmpty = graph.nodes.length === 0;
-  const isolatedCount = graph.nodes.filter(
-    (n) => !graph.links.some((l) => l.source === n.id || l.target === n.id)
-  ).length;
-
-  const selectedTagLabel =
-    selectedTag === "all"
-      ? "tất cả"
-      : tagOptions.find((option) => option.value === selectedTag)?.label || selectedTag;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-neutral-200/70 bg-white/90 shadow-sm backdrop-blur dark:border-neutral-800/70 dark:bg-neutral-950/70">
-      <div className="flex flex-col gap-3 border-b border-neutral-200/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800/70">
+      <div className="flex flex-col gap-4 border-b border-neutral-200/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800/70">
         <div>
           <p className="font-serif text-base font-semibold text-neutral-900 dark:text-white">
-            Knowledge Graph
+            Knowledge Graph (Đồ thị tri thức)
           </p>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            Mỗi node là một bài viết, cạnh nối giữa các bài có tag trùng nhau.
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Node: Bài viết · Cạnh nối: Điểm tương quan tính toán từ tag phân cấp & danh mục
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 sm:items-end">
-          <label className="text-xs text-neutral-500 dark:text-neutral-400" htmlFor="kg-tag-filter">
-            Lọc theo tag
-          </label>
-          <select
-            id="kg-tag-filter"
-            value={selectedTag}
-            onChange={(event) => setSelectedTag(event.target.value)}
-            className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 outline-none transition-colors focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-neutral-500"
-          >
-            <option value="all">Tất cả tag</option>
-            {tagOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <div className="text-xs text-neutral-500 dark:text-neutral-400">
-            {graph.nodes.length} bài viết · {graph.links.length} kết nối
-            {isolatedCount > 0 && ` · ${isolatedCount} độc lập`}
+        {/* Thanh trượt điều chỉnh ngưỡng liên kết */}
+        <div className="flex flex-col gap-1.5 rounded-xl border border-neutral-200/60 bg-neutral-50/50 p-3 dark:border-neutral-800/60 dark:bg-neutral-900/50 min-w-[260px]">
+          <div className="flex justify-between text-xs font-medium">
+            <span className="text-neutral-500 dark:text-neutral-400">Lọc tương quan từ:</span>
+            <span className="text-blue-600 dark:text-blue-400">≥ {(threshold * 100).toFixed(0)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0.3"
+            max="1.0"
+            step="0.01"
+            value={threshold}
+            onChange={(e) => setThreshold(parseFloat(e.target.value))}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-neutral-200 dark:bg-neutral-700 accent-blue-600 dark:accent-blue-500"
+          />
+          <div className="flex justify-between text-[9px] text-neutral-400 dark:text-neutral-500">
+            <span>Yếu (30%)</span>
+            <span>Vừa (50%)</span>
+            <span>Mạnh (80%+)</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-neutral-200/70 px-5 py-3 text-xs dark:border-neutral-800/70">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-neutral-200/70 px-5 py-3 text-[10px] dark:border-neutral-800/70">
         {Array.from(categoryMeta.values()).map((item) => (
-          <div key={item.label} className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+          <div key={item.label} className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
             <span>
               {item.label} ({item.count})
             </span>
           </div>
         ))}
+        <div className="ml-auto font-medium text-neutral-500 dark:text-neutral-400">
+          Tổng số: {graph.nodes.length} bài viết · {graph.links.length} liên kết
+        </div>
       </div>
 
       <div ref={wrapperRef} className="relative h-[72vh] min-h-[560px] w-full">
-        {isEmpty && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 px-6 text-center backdrop-blur-sm dark:bg-neutral-950/70">
-            <div className="max-w-sm">
-              <p className="font-serif text-lg font-semibold text-neutral-900 dark:text-white">
-                Chưa có bài viết nào
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
-                {selectedTag === "all"
-                  ? "Chưa có bài viết nào trong hệ thống."
-                  : `Không tìm thấy bài viết nào với tag "${selectedTagLabel}". Thử chọn tag khác hoặc quay lại tất cả tag.`}
-              </p>
-            </div>
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm dark:bg-neutral-950/70">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-blue-600 dark:border-neutral-700 dark:border-t-blue-500" />
           </div>
         )}
 
-        {!isEmpty && graph.links.length === 0 && (
+        {isEmpty && !loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 px-6 text-center backdrop-blur-sm dark:bg-neutral-950/70">
+            <p className="font-serif text-sm text-neutral-500 dark:text-neutral-400">
+              Không có dữ liệu bài viết để hiển thị đồ thị.
+            </p>
+          </div>
+        )}
+
+        {!isEmpty && graph.links.length === 0 && !loading && (
           <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-xl border border-neutral-200/70 bg-white/80 px-4 py-2 text-center backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-900/80">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Các bài viết chưa có tag chung — thêm tag để tạo kết nối.
+              Không có liên kết nào đạt ngưỡng tương quan { (threshold * 100).toFixed(0) }%. Hãy giảm ngưỡng để xem các kết nối yếu hơn.
             </p>
           </div>
         )}

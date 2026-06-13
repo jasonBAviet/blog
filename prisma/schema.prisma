@@ -14,28 +14,33 @@ model Category {
 }
 
 model Tag {
-  name      String   @id
-  createdAt DateTime @default(now())
-  posts     Post[]
+  name       String   @id
+  parentName String?
+  parent     Tag?     @relation("TagHierarchy", fields: [parentName], references: [name])
+  children   Tag[]    @relation("TagHierarchy")
+  createdAt  DateTime @default(now())
+  posts      Post[]
 }
 
 model Post {
-  slug       String    @id
-  title      String
-  content    String    @db.Text
-  summary    String?   @db.Text
-  category   String
-  categoryRef Category @relation(fields: [category], references: [slug])
-  tagRefs    Tag[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime?
-  views      Int       @default(0)
-  reactions  String?
-  coverImage String?
-  images     String?
-  source     String    @default("manual")
-  sourceUrl  String?
-  comments   Comment[]
+  slug        String             @id
+  title       String
+  content     String             @db.Text
+  summary     String?            @db.Text
+  category    String
+  categoryRef Category           @relation(fields: [category], references: [slug])
+  tagRefs     Tag[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime?
+  views       Int                @default(0)
+  reactions   String?
+  coverImage  String?
+  images      String?
+  source      String             @default("manual")
+  sourceUrl   String?
+  comments    Comment[]
+  relatedFrom PostRelationship[] @relation("SourcePost")
+  relatedTo   PostRelationship[] @relation("TargetPost")
 
   @@index([category])
   @@index([createdAt(sort: Desc)])
@@ -51,3 +56,19 @@ model Comment {
 
   @@index([postSlug])
 }
+
+model PostRelationship {
+  id          String   @id @default(uuid())
+  sourceSlug  String
+  sourcePost  Post     @relation("SourcePost", fields: [sourceSlug], references: [slug], onDelete: Cascade)
+  targetSlug  String
+  targetPost  Post     @relation("TargetPost", fields: [targetSlug], references: [slug], onDelete: Cascade)
+  score       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sourceSlug, targetSlug])
+  @@index([sourceSlug])
+  @@index([targetSlug])
+}
+

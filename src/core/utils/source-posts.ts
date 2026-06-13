@@ -14,6 +14,52 @@ function formatIsoDate(dateText: string): string {
   return `${year}-${month}-${day}`;
 }
 
+function classifyByTitle(title: string): string {
+  const t = (title || "").toLowerCase();
+  if (t.includes('phật giáo') || t.includes('bụt') || t.includes('tuệ sỹ') || t.includes('công đức')) return 'phat-giao';
+  if (t.includes('triết học')) return 'triet-hoc';
+  if (t.includes('thơ') || t.includes('văn học')) return 'van-hoc';
+  if (t.includes('âm nhạc') || t.includes('ẩm thực') || t.includes('world cup') || t.includes('văn hóa')) return 'van-hoa';
+  if (t.includes('tâm lý') || t.includes('phụ nữ')) return 'tam-ly';
+  if (t.includes('lập trình') || t.includes('code') || t.includes('terraform') || t.includes('kafka') || t.includes('azure') || t.includes('openai') || t.includes('latency') || t.includes('software development')) return 'lap-trinh';
+  if (t.includes('ai') || t.includes('công nghệ') || t.includes('technology') || t.includes('tokenized') || t.includes('ev transition') || t.includes('steve jobs') || t.includes('innovation')) return 'cong-nghe';
+  if (t.includes('product-market fit') || t.includes('build-or-buy') || t.includes('hướng dẫn')) return 'huong-dan';
+  if (t.includes('ceo') || t.includes('chill life') || t.includes('employee')) return 'doi-song';
+  return 'suy-ngam';
+}
+
+const CATEGORY_NAMES: Record<string, string> = {
+  "cong-nghe": "Công nghệ",
+  "doi-song": "Đời sống",
+  "suy-ngam": "Suy ngẫm",
+  "lap-trinh": "Lập trình",
+  "phat-giao": "Phật giáo",
+  "triet-hoc": "Triết học",
+  "tam-ly": "Tâm lý",
+  "van-hoc": "Văn học",
+  "van-hoa": "Văn hóa",
+  "huong-dan": "Hướng dẫn"
+};
+
+function mapCategory(categoryName: string, title?: string): { slug: string; name: string } {
+  const norm = (categoryName || "").toLowerCase().trim();
+  let slug = "suy-ngam";
+  switch (norm) {
+    case "technology": slug = "cong-nghe"; break;
+    case "lifestyle": slug = "doi-song"; break;
+    case "psychology": slug = "tam-ly"; break;
+    case "buddhism": slug = "phat-giao"; break;
+    case "philosophy": slug = "triet-hoc"; break;
+    case "literature": slug = "van-hoc"; break;
+    case "culture": slug = "van-hoa"; break;
+    case "guide": slug = "huong-dan"; break;
+    default: 
+      if (title) slug = classifyByTitle(title);
+      else slug = "suy-ngam";
+  }
+  return { slug, name: CATEGORY_NAMES[slug] || "Suy ngẫm" };
+}
+
 function parseFrontmatter(content: string): { frontmatter: Record<string, any>; body: string } {
   // Normalize line endings
   const normalized = content.replace(/\r\n/g, "\n");
@@ -128,12 +174,13 @@ function loadSourcePosts(): Post[] {
 
       const tags = parseTags(frontmatter.tags);
 
+      const mapped = mapCategory(frontmatter.category, frontmatter.title || dateStr);
       return {
         slug: frontmatter.slug || slugify(dateStr),
         title: frontmatter.title || dateStr,
         content: markdownToHtml(body),
-        category: frontmatter.category || DEFAULT_CATEGORY,
-        categoryName: frontmatter.category || DEFAULT_CATEGORY_NAME,
+        category: mapped.slug,
+        categoryName: mapped.name,
         tags,
         createdAt: frontmatter.date || formatIsoDate(dateStr),
         views: 0,

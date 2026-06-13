@@ -8,7 +8,8 @@ import { ReactionBar } from "@/components/post/ReactionBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { TagList } from "@/components/post/TagList";
 import { RelatedPosts } from "@/components/post/RelatedPosts";
-import { getPostBySlug, getAllPosts } from "@/src/core/utils/store";
+import { getPostBySlug } from "@/src/core/utils/store";
+import { postRelationshipService } from "@/src/modules/post/services/post-relationship.service";
 import { formatDate } from "@/src/core/utils/utils";
 import type { Metadata } from "next";
 
@@ -31,16 +32,8 @@ export default async function PostPage({ params }: PageProps) {
 
   if (!post) notFound();
 
-  const allPosts = await getAllPosts();
-  const relatedPosts = allPosts
-    .filter(
-      (p) =>
-        p.slug !== post.slug &&
-        ((post.tags?.length &&
-          p.tags?.some((t) => post.tags!.includes(t))) ||
-          p.category === post.category)
-    )
-    .slice(0, 3);
+  // Lấy các bài viết liên quan ban đầu từ DB với ngưỡng 0.3 trên server
+  const relatedPosts = await postRelationshipService.getRelatedPosts(post.slug, 0.3);
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
@@ -115,7 +108,7 @@ export default async function PostPage({ params }: PageProps) {
 
       <ViewCounter slug={post.slug} />
 
-      <RelatedPosts posts={relatedPosts} />
+      <RelatedPosts postSlug={post.slug} initialPosts={relatedPosts as any} />
 
       <div className="mt-12 border-t border-neutral-200/60 pt-8 dark:border-neutral-800/60">
         <p className="text-center font-serif text-sm text-neutral-400 dark:text-neutral-600">
