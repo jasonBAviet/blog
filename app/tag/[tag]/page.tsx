@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/post/PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { getPostsByTag } from "@/lib/store";
+import { getPostsByTag } from "@/src/core/utils/store";
 import Link from "next/link";
 import type { Metadata } from "next";
 

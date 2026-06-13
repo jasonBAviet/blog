@@ -1,4 +1,4 @@
-import { searchPosts, highlightText } from "@/lib/search";
+import { searchPosts, highlightText } from "@/src/core/utils/search";
 import { PostCard } from "@/components/post/PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
 import Link from "next/link";
@@ -132,3 +132,4 @@ export default async function SearchPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

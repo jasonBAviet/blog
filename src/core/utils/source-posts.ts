@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Post } from "@/types";
-import { slugify } from "@/lib/utils";
+import { slugify } from "@/src/core/utils/utils";
 
 const SOURCE_DIR = path.join(process.cwd(), "Source");
 const DEFAULT_CATEGORY = "suy-ngam";

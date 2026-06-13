@@ -12,8 +12,8 @@ import {
 import { drag } from "d3-drag";
 import { zoom } from "d3-zoom";
 import { Post } from "@/types";
-import { buildKnowledgeGraph } from "@/lib/knowledge-graph";
-import { formatDate } from "@/lib/utils";
+import { buildKnowledgeGraph } from "@/src/core/utils/knowledge-graph";
+import { formatDate } from "@/src/core/utils/utils";
 
 interface KnowledgeGraphProps {
   posts: Post[];
@@ -85,7 +85,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     let colorIndex = 0;
 
     graph.nodes.forEach((node) => {
-      const categoryLabel = (node.categoryName || "Khong phan loai").trim() || "Khong phan loai";
+      const categoryLabel = (node.categoryName || "Không phân loại").trim() || "Không phân loại";
       const key = categoryLabel.toLowerCase();
       const existing = map.get(key);
       if (existing) {
@@ -108,7 +108,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     const nodeColorMap = new Map<string, string>();
 
     graph.nodes.forEach((node) => {
-      const categoryLabel = (node.categoryName || "Khong phan loai").trim() || "Khong phan loai";
+      const categoryLabel = (node.categoryName || "Không phân loại").trim() || "Không phân loại";
       const key = categoryLabel.toLowerCase();
       const meta = categoryMeta.get(key);
       nodeColorMap.set(node.id, meta?.color || "#374151");
@@ -145,7 +145,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
 
     links.append("title").text((d) => {
       const tags = d.sharedTags.join(", ");
-      return `${d.relationLabel}\nType: ${d.relationType}\nStrength: ${d.relationStrength}\nTags: ${tags}`;
+      return `${d.relationLabel}\nLoại: ${d.relationType}\nĐộ mạnh: ${d.relationStrength}\nTag: ${tags}`;
     });
 
     const nodes = nodeLayer
@@ -159,8 +159,10 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       .append("circle")
       .attr("r", (d) => nodeRadius(d.tags.length))
       .attr("fill", (d) => categoryColorByNodeId.get(d.id) || "#374151")
-      .attr("stroke", "#f5f5f5")
-      .attr("stroke-width", 1.5);
+      .attr("stroke", (d) => (d.tags.length === 0 ? "rgba(150,150,150,0.5)" : "#f5f5f5"))
+      .attr("stroke-width", (d) => (d.tags.length === 0 ? 1 : 1.5))
+      .attr("stroke-dasharray", (d) => (d.tags.length === 0 ? "3,2" : "none"))
+      .attr("opacity", (d) => (d.tags.length === 0 ? 0.6 : 1));
 
     nodes
       .append("text")
@@ -173,8 +175,8 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       .attr("class", "select-none fill-neutral-600 dark:fill-neutral-300");
 
     nodes.append("title").text((d) => {
-      const tags = d.tags.length > 0 ? d.tags.join(", ") : "Khong co tag";
-      return `${d.title}\nTags: ${tags}\nCap nhat: ${formatDate(d.createdAt)}`;
+      const tags = d.tags.length > 0 ? d.tags.join(", ") : "Không có tag";
+      return `${d.title}\nTag: ${tags}\nCập nhật: ${formatDate(d.createdAt)}`;
     });
 
     const neighborMap = new Map<string, Set<string>>();
@@ -195,9 +197,9 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
 
       nodes
         .select("circle")
-        .attr("opacity", 1)
-        .attr("stroke-width", 1.5)
-        .attr("stroke", "#f5f5f5");
+        .attr("opacity", (d) => (d.tags.length === 0 ? 0.6 : 1))
+        .attr("stroke-width", (d) => (d.tags.length === 0 ? 1 : 1.5))
+        .attr("stroke", (d) => (d.tags.length === 0 ? "rgba(150,150,150,0.5)" : "#f5f5f5"));
 
       nodes
         .select("text")
@@ -308,10 +310,14 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
     return () => observer.disconnect();
   }, []);
 
-  const hasEdges = graph.links.length > 0;
+  const isEmpty = graph.nodes.length === 0;
+  const isolatedCount = graph.nodes.filter(
+    (n) => !graph.links.some((l) => l.source === n.id || l.target === n.id)
+  ).length;
+
   const selectedTagLabel =
     selectedTag === "all"
-      ? "tat ca"
+      ? "tất cả"
       : tagOptions.find((option) => option.value === selectedTag)?.label || selectedTag;
 
   return (
@@ -322,13 +328,13 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
             Knowledge Graph
           </p>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            Moi node la mot bai viet, canh noi giua cac bai co tag trung nhau.
+            Mỗi node là một bài viết, cạnh nối giữa các bài có tag trùng nhau.
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:items-end">
           <label className="text-xs text-neutral-500 dark:text-neutral-400" htmlFor="kg-tag-filter">
-            Loc theo tag
+            Lọc theo tag
           </label>
           <select
             id="kg-tag-filter"
@@ -336,7 +342,7 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
             onChange={(event) => setSelectedTag(event.target.value)}
             className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 outline-none transition-colors focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-neutral-500"
           >
-            <option value="all">Tat ca tag</option>
+            <option value="all">Tất cả tag</option>
             {tagOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -344,7 +350,8 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
             ))}
           </select>
           <div className="text-xs text-neutral-500 dark:text-neutral-400">
-            {graph.nodes.length} bai viet, {graph.links.length} ket noi
+            {graph.nodes.length} bài viết · {graph.links.length} kết nối
+            {isolatedCount > 0 && ` · ${isolatedCount} độc lập`}
           </div>
         </div>
       </div>
@@ -361,18 +368,26 @@ export function KnowledgeGraph({ posts }: KnowledgeGraphProps) {
       </div>
 
       <div ref={wrapperRef} className="relative h-[72vh] min-h-[560px] w-full">
-        {!hasEdges && (
+        {isEmpty && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 px-6 text-center backdrop-blur-sm dark:bg-neutral-950/70">
             <div className="max-w-sm">
               <p className="font-serif text-lg font-semibold text-neutral-900 dark:text-white">
-                Chua du du lieu de ve graph
+                Chưa có bài viết nào
               </p>
               <p className="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
                 {selectedTag === "all"
-                  ? "KG can it nhat hai bai co chung tag. Hay them tag cho cac bai de mo rong lien ket."
-                  : `Khong tim thay lien ket cho tag \"${selectedTagLabel}\". Thu chon tag khac hoac quay lai tat ca tag.`}
+                  ? "Chưa có bài viết nào trong hệ thống."
+                  : `Không tìm thấy bài viết nào với tag "${selectedTagLabel}". Thử chọn tag khác hoặc quay lại tất cả tag.`}
               </p>
             </div>
+          </div>
+        )}
+
+        {!isEmpty && graph.links.length === 0 && (
+          <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-xl border border-neutral-200/70 bg-white/80 px-4 py-2 text-center backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-900/80">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Các bài viết chưa có tag chung — thêm tag để tạo kết nối.
+            </p>
           </div>
         )}
 

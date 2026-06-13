@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import { incrementViews } from "@/lib/store";
+import { postService } from "@/src/modules/post/services/post.service";
+import { withErrorHandler } from "@/src/core/exceptions/api-handler";
+import { ValidationError } from "@/src/core/exceptions/http-error";
 
-export async function POST(request: Request) {
-  try {
-    const { slug } = await request.json();
-    if (!slug) {
-      return NextResponse.json({ error: "Thiếu slug" }, { status: 400 });
-    }
-    await incrementViews(slug);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
+export const POST = withErrorHandler(async (request: Request) => {
+  const { slug } = await request.json();
+  if (!slug) {
+    throw new ValidationError("Thiếu slug là bắt buộc");
   }
-}
+  await postService.incrementViews(slug);
+  return NextResponse.json({ success: true });
+});
+

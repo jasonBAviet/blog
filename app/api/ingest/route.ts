@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/utils";
+import { prisma } from "@/src/config/database";
+import { slugify } from "@/src/core/utils/utils";
+import { ValidationError } from "@/src/core/exceptions/http-error";
 
 function authGuard(request: NextRequest): boolean {
   const expected = process.env.INGEST_API_KEY;
@@ -23,7 +24,7 @@ type ArticleInput = {
 async function ingestOne(article: ArticleInput) {
   const { title, content, summary, category, tags, sourceUrl, coverImage } = article;
   if (!title?.trim() || !content?.trim()) {
-    throw new Error("title and content are required");
+    throw new ValidationError("title and content are required");
   }
 
   const slug = slugify(title);
@@ -111,7 +112,12 @@ export async function POST(request: NextRequest) {
     revalidatePath("/", "layout");
     return NextResponse.json({ success: true, slug: result.slug }, { status: 201 });
   } catch (err) {
+    // Lỗi validation ở single mode trả 400 thay vì 500
+    if (err instanceof ValidationError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     console.error("[ingest]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+

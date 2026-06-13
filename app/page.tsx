@@ -3,7 +3,7 @@ import { PostCard } from "@/components/post/PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Pagination } from "@/components/ui/Pagination";
 import { KnowledgeGraph } from "@/components/kg/KnowledgeGraph";
-import { getAllPosts, getPaginatedPosts } from "@/lib/store";
+import { getAllPosts, getPaginatedPosts } from "@/src/core/utils/store";
 
 export const dynamic = "force-dynamic";
 
@@ -20,59 +20,77 @@ export default async function HomePage({ searchParams }: PageProps) {
   const { posts, totalPages, page } = await getPaginatedPosts(currentPage, POSTS_PER_PAGE);
   const allPosts = await getAllPosts();
 
+  const viewSwitcher = (
+    <div className="inline-flex rounded-full border border-neutral-200/70 bg-white p-1 text-sm shadow-sm dark:border-neutral-800/70 dark:bg-neutral-950">
+      <Link
+        href="/"
+        className={
+          "rounded-full px-4 py-2 transition-colors " +
+          (currentView === "list"
+            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+            : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")
+        }
+      >
+        Danh sách
+      </Link>
+      <Link
+        href="/?view=kg"
+        className={
+          "rounded-full px-4 py-2 transition-colors " +
+          (currentView === "kg"
+            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+            : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")
+        }
+      >
+        Knowledge Graph
+      </Link>
+    </div>
+  );
+
+  if (currentView === "kg") {
+    return (
+      <div className="px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
+        <div className="mx-auto mb-6 flex max-w-3xl flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="mb-2 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-3 sm:text-3xl">
+              Blog cá nhân
+            </h1>
+            <p className="max-w-md font-serif text-sm leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
+              Nơi chia sẻ về công nghệ, đời sống và những suy ngẫm.
+            </p>
+          </div>
+          {viewSwitcher}
+        </div>
+        <FadeIn>
+          <KnowledgeGraph posts={allPosts} />
+        </FadeIn>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
       <div className="mb-8 flex flex-col gap-4 sm:mb-12 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="mb-2 font-serif text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:mb-3 sm:text-3xl">
-            Blog ca nhan
+            Blog cá nhân
           </h1>
-          <p className="max-w-md text-sm font-serif leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
-            Noi chia se ve cong nghe, doi song va nhung suy ngam.
+          <p className="max-w-md font-serif text-sm leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
+            Nơi chia sẻ về công nghệ, đời sống và những suy ngẫm.
           </p>
         </div>
-
-        <div className="inline-flex rounded-full border border-neutral-200/70 bg-white p-1 text-sm shadow-sm dark:border-neutral-800/70 dark:bg-neutral-950">
-          <Link
-            href="/"
-            className={
-              "rounded-full px-4 py-2 transition-colors " +
-              (currentView === "list"
-                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")
-            }
-          >
-            List
-          </Link>
-          <Link
-            href="/?view=kg"
-            className={
-              "rounded-full px-4 py-2 transition-colors " +
-              (currentView === "kg"
-                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")
-            }
-          >
-            KG D3
-          </Link>
-        </div>
+        {viewSwitcher}
       </div>
 
-      {currentView === "kg" ? (
-        <FadeIn>
-          <KnowledgeGraph posts={allPosts} />
-        </FadeIn>
-      ) : (
-        <div>
-          {posts.map((post, i) => (
-            <FadeIn key={post.slug} delay={i * 0.08}>
-              <PostCard post={post} priority={i === 0} />
-            </FadeIn>
-          ))}
-        </div>
-      )}
+      <div>
+        {posts.map((post, i) => (
+          <FadeIn key={post.slug} delay={i * 0.08}>
+            <PostCard post={post} priority={i === 0} />
+          </FadeIn>
+        ))}
+      </div>
 
-      {currentView === "list" && <Pagination page={page} totalPages={totalPages} basePath="/?view=list" />}
+      <Pagination page={page} totalPages={totalPages} basePath="/?view=list" />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { removeAuthCookie } from "@/lib/auth";
+import { removeAuthCookie } from "@/src/core/utils/auth";
 
 export async function POST() {
   try {
@@ -9,3 +9,4 @@ export async function POST() {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
+

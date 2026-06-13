@@ -8,8 +8,8 @@ import { ReactionBar } from "@/components/post/ReactionBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { TagList } from "@/components/post/TagList";
 import { RelatedPosts } from "@/components/post/RelatedPosts";
-import { getPostBySlug, getAllPosts } from "@/lib/store";
-import { formatDate } from "@/lib/utils";
+import { getPostBySlug, getAllPosts } from "@/src/core/utils/store";
+import { formatDate } from "@/src/core/utils/utils";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";

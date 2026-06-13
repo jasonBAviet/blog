@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchPosts } from "@/lib/search";
+import { searchPosts } from "@/src/core/utils/search";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -12,3 +12,4 @@ export async function GET(request: NextRequest) {
   const results = await searchPosts(q);
   return NextResponse.json({ results, total: results.length });
 }
+

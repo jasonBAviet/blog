@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getStats } from "@/lib/store";
+import { getStats } from "@/src/core/utils/store";
 
 export async function DashboardStats() {
   const stats = await getStats();
@@ -111,3 +111,4 @@ export async function DashboardStats() {
     </div>
   );
 }
+

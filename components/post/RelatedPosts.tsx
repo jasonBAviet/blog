@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Post } from "@/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/src/core/utils/utils";
 
 export function RelatedPosts({ posts }: { posts: Post[] }) {
   if (posts.length === 0) return null;
@@ -29,3 +29,4 @@ export function RelatedPosts({ posts }: { posts: Post[] }) {
     </div>
   );
 }
+

@@ -1,37 +1,24 @@
 import { NextResponse } from "next/server";
-import { getCategoryBySlug, updateCategory, deleteCategory } from "@/lib/store";
+import { categoryService } from "@/src/modules/category/services/category.service";
+import { validateUpdateCategoryDto } from "@/src/modules/category/dtos/category.dto";
+import { withErrorHandler } from "@/src/core/exceptions/api-handler";
 
-export async function PUT(
+export const PUT = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
-) {
-  try {
-    const { slug } = await params;
-    const existing = await getCategoryBySlug(slug);
-    if (!existing) {
-      return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
-    }
-    const body = await request.json();
-    await updateCategory(slug, body);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+) => {
+  const { slug } = await params;
+  const body = await request.json();
+  const dto = validateUpdateCategoryDto(body);
+  await categoryService.updateCategory(slug, dto);
+  return NextResponse.json({ success: true });
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   _request: Request,
   { params }: { params: Promise<{ slug: string }> }
-) {
-  try {
-    const { slug } = await params;
-    const existing = await getCategoryBySlug(slug);
-    if (!existing) {
-      return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
-    }
-    await deleteCategory(slug);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+) => {
+  const { slug } = await params;
+  await categoryService.deleteCategory(slug);
+  return NextResponse.json({ success: true });
+});

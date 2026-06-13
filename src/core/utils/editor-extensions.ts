@@ -4,7 +4,7 @@ import ImageExtension from "@tiptap/extension-image";
 import PlaceholderExtension from "@tiptap/extension-placeholder";
 import LinkExtension from "@tiptap/extension-link";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase-client";
+import { storage } from "@/src/config/firebase-client";
 
 async function uploadImageToStorage(file: File): Promise<string> {
   try {

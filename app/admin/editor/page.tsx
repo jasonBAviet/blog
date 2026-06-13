@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PostEditor } from "@/components/admin/PostEditor";
 import { CategorySelect } from "@/components/admin/CategorySelect";
 import { Category, Post } from "@/types";
-import { slugify } from "@/lib/utils";
+import { slugify } from "@/src/core/utils/utils";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -153,3 +153,4 @@ export default function NewPostPage() {
     </div>
   );
 }
+

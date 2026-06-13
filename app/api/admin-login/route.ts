@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyPassword, setAuthCookie } from "@/lib/auth";
+import { verifyPassword, setAuthCookie } from "@/src/core/utils/auth";
 
 export async function POST(request: Request) {
   try {
@@ -14,3 +14,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
+

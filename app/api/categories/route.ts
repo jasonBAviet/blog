@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
-import { getAllCategories, createCategory } from "@/lib/store";
+import { categoryService } from "@/src/modules/category/services/category.service";
+import { validateCreateCategoryDto } from "@/src/modules/category/dtos/category.dto";
+import { withErrorHandler } from "@/src/core/exceptions/api-handler";
 
-export async function GET() {
-  try {
-    const categories = await getAllCategories();
-    return NextResponse.json(categories);
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+export const GET = withErrorHandler(async () => {
+  const categories = await categoryService.getAllCategories();
+  return NextResponse.json(categories);
+});
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { slug, name, createdAt } = body;
-    if (!slug || !name) {
-      return NextResponse.json({ error: "Thiếu slug hoặc name" }, { status: 400 });
-    }
-    await createCategory({ slug, name, createdAt: createdAt || new Date().toISOString() });
-    return NextResponse.json({ success: true }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+export const POST = withErrorHandler(async (request: Request) => {
+  const body = await request.json();
+  const dto = validateCreateCategoryDto(body);
+  await categoryService.createCategory(dto);
+  return NextResponse.json({ success: true }, { status: 201 });
+});
+

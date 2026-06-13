@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildKnowledgeGraph } from "./knowledge-graph";
-import type { Post } from "../types";
+import type { Post } from "@/types";
 
 function makePost(partial: Partial<Post> & Pick<Post, "slug" | "title">): Post {
   return {

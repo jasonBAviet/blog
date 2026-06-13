@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Category } from "@/types";
-import { slugify } from "@/lib/utils";
+import { slugify } from "@/src/core/utils/utils";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -199,3 +199,4 @@ export default function CategoriesPage() {
     </div>
   );
 }
+

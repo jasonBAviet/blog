@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPostBySlug, updatePost, deletePost } from "@/lib/store";
+import { getPostBySlug, updatePost, deletePost } from "@/src/core/utils/store";
 
 export async function GET(
   _request: Request,

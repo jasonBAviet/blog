@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/src/core/utils/auth";
 
 export async function POST(request: Request) {
   // Allow revalidation from localhost for development
@@ -43,3 +43,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
   }
 }
+

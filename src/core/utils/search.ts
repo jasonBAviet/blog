@@ -1,5 +1,5 @@
 import { Post } from "@/types";
-import { getAllPosts } from "@/lib/store";
+import { getAllPosts } from "@/src/core/utils/store";
 
 function normalize(str: string): string {
   return str

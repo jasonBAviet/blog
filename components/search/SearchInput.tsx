@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { SearchResult } from "@/lib/search";
+import type { SearchResult } from "@/src/core/utils/search";
 
 export function SearchInput() {
   const router = useRouter();
@@ -169,3 +169,4 @@ export function SearchInput() {
     </div>
   );
 }
+

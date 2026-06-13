@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BackToTop } from "@/components/ui/BackToTop";
 import { SidebarPanel } from "@/components/layout/SidebarPanel";
-import { getAllPosts } from "@/lib/store";
+import { getAllPosts } from "@/src/core/utils/store";
 import "./globals.css";
 
 const fontSansVN = Be_Vietnam_Pro({
@@ -65,3 +65,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

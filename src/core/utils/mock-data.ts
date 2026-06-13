@@ -1,5 +1,5 @@
 import { Post, Category } from "@/types";
-import { sourcePosts } from "@/lib/source-posts";
+import { sourcePosts } from "@/src/core/utils/source-posts";
 
 export const mockCategories: Category[] = [
   { slug: "cong-nghe", name: "Công nghệ", createdAt: "2026-01-01" },

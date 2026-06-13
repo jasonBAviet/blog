@@ -1,36 +1,24 @@
 import { NextResponse } from "next/server";
-import { getAllPosts, createPost } from "@/lib/store";
+import { postService } from "@/src/modules/post/services/post.service";
+import { validateCreatePostDto } from "@/src/modules/post/dtos/post.dto";
+import { withErrorHandler } from "@/src/core/exceptions/api-handler";
+import { getAllPosts } from "@/src/core/utils/store";
 
-export async function GET() {
-  try {
-    const posts = await getAllPosts();
-    return NextResponse.json(posts);
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+export const GET = withErrorHandler(async () => {
+  // Trả về Post đã map (tags, categoryName, reactions...) đúng contract như client mong đợi
+  const posts = await getAllPosts();
+  return NextResponse.json(posts);
+});
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { slug, title, content, summary, category, tags, coverImage, images } = body;
-    if (!slug || !title || !content || !category) {
-      return NextResponse.json({ error: "Thiếu thông tin bài viết" }, { status: 400 });
-    }
-    await createPost({
-      slug,
-      title,
-      content,
-      summary: summary || undefined,
-      category,
-      tags: Array.isArray(tags) && tags.length ? tags : undefined,
-      createdAt: new Date().toISOString(),
-      views: 0,
-      coverImage: coverImage || undefined,
-      images: images || undefined,
-    });
-    return NextResponse.json({ success: true, slug }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
-  }
-}
+export const POST = withErrorHandler(async (request: Request) => {
+  const body = await request.json();
+  
+  // Validate DTO
+  const dto = validateCreatePostDto(body);
+
+  // Call Service
+  const newPost = await postService.createPost(dto);
+
+  return NextResponse.json({ success: true, slug: newPost.slug }, { status: 201 });
+});
+

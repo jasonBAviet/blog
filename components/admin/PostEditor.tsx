@@ -7,7 +7,7 @@ import {
   PlaceholderExtension,
   LinkExtension,
   ImageDropPasteExtension,
-} from "@/lib/editor-extensions";
+} from "@/src/core/utils/editor-extensions";
 import { useCallback, useRef } from "react";
 
 interface PostEditorProps {
@@ -235,3 +235,4 @@ function ImageIcon() {
     </svg>
   );
 }
+

@@ -1,4 +1,4 @@
-import { formatDate, estimateReadingTime } from "@/lib/utils";
+import { formatDate, estimateReadingTime } from "@/src/core/utils/utils";
 
 interface PostMetaProps {
   date: string;
@@ -25,3 +25,4 @@ export function PostMeta({ date, views, readingTimeContent }: PostMetaProps) {
     </div>
   );
 }
+
