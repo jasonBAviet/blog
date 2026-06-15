@@ -25,10 +25,27 @@ export function parseUserAgent(ua: string): { os: string; device: string; browse
 
 const PRIVATE_IP_RE = /^(::1|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
 
-export async function getGeoFromIp(ip: string): Promise<{ country?: string; city?: string }> {
+export async function getGeoFromIp(
+  ip: string,
+  request?: Request
+): Promise<{ country?: string; city?: string }> {
+  // Vercel injects geo headers automatically — use them when available (no external call needed)
+  if (request) {
+    const country = request.headers.get("x-vercel-ip-country");
+    const city = request.headers.get("x-vercel-ip-city");
+    if (country) {
+      return {
+        country,
+        city: city ? decodeURIComponent(city) : undefined,
+      };
+    }
+  }
+
   if (!ip || PRIVATE_IP_RE.test(ip)) {
     return { country: "Local", city: "Localhost" };
   }
+
+  // Fallback: ip-api.com (free, HTTP only, works on non-Vercel environments)
   try {
     const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city`, {
       signal: AbortSignal.timeout(2000),

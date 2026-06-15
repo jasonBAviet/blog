@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     const ua = (request.headers.get("user-agent") || "").substring(0, 512);
     const newCookieId = crypto.randomUUID();
     const { os, device, browser } = parseUserAgent(ua);
-    const geo = await getGeoFromIp(ip);
+    const geo = await getGeoFromIp(ip, request);
 
     await prisma.deviceSession.create({
       data: {
