@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { PostCard } from "@/components/post/PostCard";
-import { FadeIn } from "@/components/ui/FadeIn";
+import { PostListClient } from "@/components/post/PostListClient";
 import { getPostsByTag } from "@/src/core/utils/store";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -57,13 +56,7 @@ export default async function TagPage({ params }: PageProps) {
         </p>
       </div>
 
-      <div>
-        {posts.map((post, i) => (
-          <FadeIn key={post.slug} delay={i * 0.08}>
-            <PostCard post={post} priority={i === 0} />
-          </FadeIn>
-        ))}
-      </div>
+      <PostListClient posts={posts} />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { PostCard } from "@/components/post/PostCard";
-import { FadeIn } from "@/components/ui/FadeIn";
+import { PostListClient } from "@/components/post/PostListClient";
 import { Pagination } from "@/components/ui/Pagination";
 import { getAllPosts, getCategoryBySlug } from "@/src/core/utils/store";
 import Link from "next/link";
@@ -54,13 +53,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           Chua co bai viet nao trong danh muc nay.
         </p>
       ) : (
-        <div>
-          {posts.map((post, i) => (
-            <FadeIn key={post.slug} delay={i * 0.08}>
-              <PostCard post={post} priority={i === 0} />
-            </FadeIn>
-          ))}
-        </div>
+        <PostListClient posts={posts} />
       )}
 
       <Pagination

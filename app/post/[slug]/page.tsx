@@ -8,6 +8,7 @@ import { ReactionBar } from "@/components/post/ReactionBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { TagList } from "@/components/post/TagList";
 import { RelatedPosts } from "@/components/post/RelatedPosts";
+import { ReadTracker } from "@/components/post/ReadTracker";
 import { getPostBySlug } from "@/src/core/utils/store";
 import { postRelationshipService } from "@/src/modules/post/services/post-relationship.service";
 import { formatDate } from "@/src/core/utils/utils";
@@ -107,6 +108,7 @@ export default async function PostPage({ params }: PageProps) {
       <CommentSection postSlug={post.slug} />
 
       <ViewCounter slug={post.slug} />
+      <ReadTracker slug={post.slug} />
 
       <RelatedPosts postSlug={post.slug} initialPosts={relatedPosts as any} />
 

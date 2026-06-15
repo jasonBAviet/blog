@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PostCard } from "@/components/post/PostCard";
+import { PostListClient } from "@/components/post/PostListClient";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Pagination } from "@/components/ui/Pagination";
 import { KnowledgeGraph } from "@/components/kg/KnowledgeGraph";
@@ -82,13 +82,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         {viewSwitcher}
       </div>
 
-      <div>
-        {posts.map((post, i) => (
-          <FadeIn key={post.slug} delay={i * 0.08}>
-            <PostCard post={post} priority={i === 0} />
-          </FadeIn>
-        ))}
-      </div>
+      <PostListClient posts={posts} />
 
       <Pagination page={page} totalPages={totalPages} basePath="/?view=list" />
     </div>

@@ -5,7 +5,7 @@ import { formatDate } from "@/src/core/utils/utils";
 import { PostMeta } from "./PostMeta";
 import { TagList } from "./TagList";
 
-export function PostCard({ post, priority = false }: { post: Post; priority?: boolean }) {
+export function PostCard({ post, priority = false, isRead = false }: { post: Post; priority?: boolean; isRead?: boolean }) {
   const excerpt = post.content
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, " ")
@@ -14,7 +14,7 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
     + "...";
 
   return (
-    <article className="group relative border-b border-neutral-200/60 py-6 last:border-b-0 dark:border-neutral-800/60 sm:py-8">
+    <article className={`group relative border-b border-neutral-200/60 py-6 last:border-b-0 dark:border-neutral-800/60 sm:py-8 transition-opacity${isRead ? " opacity-50" : ""}`}>
       {post.coverImage && (
         <Link href={`/post/${post.slug}`} className="mb-4 block overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-800/60">
           <Image
@@ -29,10 +29,18 @@ export function PostCard({ post, priority = false }: { post: Post; priority?: bo
         </Link>
       )}
 
-      <div className="mb-2">
+      <div className="mb-2 flex items-center gap-2">
         <span className="font-sans text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
           {post.categoryName || post.category}
         </span>
+        {isRead && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
+            <svg className="h-2.5 w-2.5" viewBox="0 0 10 10" fill="currentColor">
+              <path d="M8.5 2.5L4 7 1.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
+            Đã đọc
+          </span>
+        )}
       </div>
 
       <h2 className="mb-2 text-balance font-serif text-lg font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-neutral-600 dark:text-white dark:group-hover:text-neutral-300 sm:text-xl">
