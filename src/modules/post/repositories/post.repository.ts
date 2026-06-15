@@ -28,6 +28,31 @@ export class PostRepository {
     });
   }
 
+  async countExcluding(excludeSlugs: string[]) {
+    return await prisma.post.count({
+      where: excludeSlugs.length ? { slug: { notIn: excludeSlugs } } : undefined,
+    });
+  }
+
+  async findPaginatedExcluding(skip: number, take: number, excludeSlugs: string[]) {
+    return await prisma.post.findMany({
+      where: excludeSlugs.length ? { slug: { notIn: excludeSlugs } } : undefined,
+      orderBy: { createdAt: "desc" },
+      include: { categoryRef: true, tagRefs: true },
+      skip,
+      take,
+    });
+  }
+
+  async findBySlugs(slugs: string[]) {
+    if (!slugs.length) return [];
+    return await prisma.post.findMany({
+      where: { slug: { in: slugs } },
+      orderBy: { createdAt: "desc" },
+      include: { categoryRef: true, tagRefs: true },
+    });
+  }
+
   async findBySlug(slug: string) {
     return await prisma.post.findUnique({
       where: { slug },

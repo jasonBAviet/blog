@@ -1,5 +1,6 @@
 import { Post, Category, Tag, Comment } from "@/types";
 import { postService } from "@/src/modules/post/services/post.service";
+import { postRepository } from "@/src/modules/post/repositories/post.repository";
 import { categoryService } from "@/src/modules/category/services/category.service";
 import { tagService } from "@/src/modules/tag/services/tag.service";
 import { commentService } from "@/src/modules/comment/services/comment.service";
@@ -48,6 +49,20 @@ export async function getPaginatedPosts(page: number, limit: number) {
   // Phân trang ở tầng DB (skip/take) thay vì tải toàn bộ rồi cắt trong memory
   const { posts, total, page: safePage, totalPages } = await postService.getPaginatedPosts(page, limit);
   return { posts: posts.map(toPost), total, page: safePage, totalPages };
+}
+
+export async function getPaginatedUnreadPosts(page: number, limit: number, readSlugs: string[]) {
+  const total = await postRepository.countExcluding(readSlugs);
+  const totalUnreadPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.min(Math.max(1, page), totalUnreadPages);
+  const posts = await postRepository.findPaginatedExcluding((safePage - 1) * limit, limit, readSlugs);
+  return { posts: posts.map(toPost), total, page: safePage, totalUnreadPages };
+}
+
+export async function getReadPosts(readSlugs: string[]): Promise<Post[]> {
+  if (!readSlugs.length) return [];
+  const posts = await postRepository.findBySlugs(readSlugs);
+  return posts.map(toPost);
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {

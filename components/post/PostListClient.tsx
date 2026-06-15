@@ -5,48 +5,33 @@ import { PostCard } from "./PostCard";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { useReadHistory } from "@/hooks/useReadHistory";
 
-export function PostListClient({ posts }: { posts: Post[] }) {
+interface PostListClientProps {
+  posts: Post[];
+  // "unread": server already filtered to unread; clicking dims post optimistically
+  // "read": server already filtered to read; all rendered as read (dimmed)
+  mode?: "unread" | "read";
+}
+
+export function PostListClient({ posts, mode = "unread" }: PostListClientProps) {
   const { isRead, markAsRead, mounted } = useReadHistory();
 
-  const { unread, read } = useMemo(() => {
-    // Before hydration: keep original server order to avoid mismatch
-    if (!mounted) return { unread: posts, read: [] as Post[] };
-    const unread: Post[] = [];
-    const read: Post[] = [];
-    for (const post of posts) {
-      (isRead(post.slug) ? read : unread).push(post);
-    }
-    return { unread, read };
-  }, [posts, isRead, mounted]);
+  // For "read" mode, all posts are read — no hook state needed for visual
+  // For "unread" mode, cross-reference hook state for optimistic dimming
+  const enriched = useMemo(() => {
+    if (mode === "read") return posts.map((p) => ({ post: p, isRead: true }));
+    if (!mounted) return posts.map((p) => ({ post: p, isRead: false }));
+    return posts.map((p) => ({ post: p, isRead: isRead(p.slug) }));
+  }, [posts, mode, isRead, mounted]);
 
   return (
     <div>
-      {unread.map((post, i) => (
+      {enriched.map(({ post, isRead: read }, i) => (
         <FadeIn key={post.slug} delay={i * 0.08}>
           <div onClick={() => markAsRead(post.slug)}>
-            <PostCard post={post} priority={i === 0} isRead={false} />
+            <PostCard post={post} priority={i === 0 && !read} isRead={read} />
           </div>
         </FadeIn>
       ))}
-
-      {read.length > 0 && (
-        <>
-          <div className="my-4 flex items-center gap-3 select-none">
-            <div className="h-px flex-1 bg-neutral-200/60 dark:bg-neutral-800/60" />
-            <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-              Đã đọc
-            </span>
-            <div className="h-px flex-1 bg-neutral-200/60 dark:bg-neutral-800/60" />
-          </div>
-          {read.map((post, i) => (
-            <FadeIn key={post.slug} delay={i * 0.04}>
-              <div onClick={() => markAsRead(post.slug)}>
-                <PostCard post={post} priority={false} isRead={true} />
-              </div>
-            </FadeIn>
-          ))}
-        </>
-      )}
     </div>
   );
 }
