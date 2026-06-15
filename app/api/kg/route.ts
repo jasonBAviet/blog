@@ -14,11 +14,16 @@ export async function GET(request: Request) {
       );
     }
 
-    // 1. Lấy tất cả bài viết làm các Node trong đồ thị
+    // 1. Lấy tất cả bài viết làm các Node trong đồ thị (chỉ select các field cần thiết, bỏ qua content)
     const posts = await prisma.post.findMany({
-      include: {
-        categoryRef: true,
-        tagRefs: true,
+      select: {
+        slug: true,
+        title: true,
+        category: true,
+        views: true,
+        createdAt: true,
+        categoryRef: { select: { name: true } },
+        tagRefs: { select: { name: true } },
       },
     });
 
@@ -45,7 +50,7 @@ export async function GET(request: Request) {
     const seenLinks = new Set<string>();
     const links = relationships
       .filter((rel) => {
-        const key = [rel.sourceSlug, rel.targetSlug].sort().join("-");
+        const key = [rel.sourceSlug, rel.targetSlug].sort().join("|");
         if (seenLinks.has(key)) return false;
         seenLinks.add(key);
         return true;

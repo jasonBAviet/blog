@@ -1,7 +1,7 @@
 import { prisma } from "@/src/config/database";
 
 export class PostRelationshipRepository {
-  async findBySource(sourceSlug: string, minScore: number = 0.0) {
+  async findBySource(sourceSlug: string, minScore: number = 0.0, limit: number = 6) {
     return await prisma.postRelationship.findMany({
       where: {
         sourceSlug,
@@ -20,6 +20,7 @@ export class PostRelationshipRepository {
       orderBy: {
         score: "desc",
       },
+      take: limit,
     });
   }
 

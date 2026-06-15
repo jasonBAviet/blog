@@ -28,12 +28,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const [post, relatedPosts] = await Promise.all([
+    getPostBySlug(slug),
+    postRelationshipService.getRelatedPosts(slug, 0.3),
+  ]);
 
   if (!post) notFound();
-
-  // Lấy các bài viết liên quan ban đầu từ DB với ngưỡng 0.3 trên server
-  const relatedPosts = await postRelationshipService.getRelatedPosts(post.slug, 0.3);
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">

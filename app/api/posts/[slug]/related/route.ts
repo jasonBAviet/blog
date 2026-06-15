@@ -19,7 +19,9 @@ export async function GET(
     }
 
     const relatedPosts = await postRelationshipService.getRelatedPosts(slug, threshold);
-    return NextResponse.json(relatedPosts);
+    return NextResponse.json(relatedPosts, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" },
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: "Lỗi hệ thống khi tải bài viết liên quan.", details: error.message },
