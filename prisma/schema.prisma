@@ -41,6 +41,7 @@ model Post {
   comments    Comment[]
   relatedFrom PostRelationship[] @relation("SourcePost")
   relatedTo   PostRelationship[] @relation("TargetPost")
+  readBy      PostReadHistory[]
 
   @@index([category])
   @@index([createdAt(sort: Desc)])
@@ -54,6 +55,37 @@ model Comment {
   content    String   @db.Text
   createdAt  DateTime @default(now())
 
+  @@index([postSlug])
+}
+
+model DeviceSession {
+  id         String   @id @default(cuid())
+  cookieId   String   @unique
+  ip         String?
+  userAgent  String?
+  os         String?
+  device     String?
+  browser    String?
+  country    String?
+  city       String?
+  timezone   String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @updatedAt
+  readPosts  PostReadHistory[]
+
+  @@index([cookieId])
+}
+
+model PostReadHistory {
+  id        String        @id @default(cuid())
+  sessionId String
+  postSlug  String
+  readAt    DateTime      @default(now())
+  session   DeviceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  post      Post          @relation(fields: [postSlug], references: [slug], onDelete: Cascade)
+
+  @@unique([sessionId, postSlug])
+  @@index([sessionId])
   @@index([postSlug])
 }
 
