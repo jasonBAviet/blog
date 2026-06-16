@@ -1,17 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Post } from "@/types";
-import { formatDate } from "@/src/core/utils/utils";
+import { formatDate, cleanHtml, extractConclusion } from "@/src/core/utils/utils";
 import { PostMeta } from "./PostMeta";
 import { TagList } from "./TagList";
 
 export function PostCard({ post, priority = false, isRead = false }: { post: Post; priority?: boolean; isRead?: boolean }) {
-  const excerpt = post.content
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .substring(0, 160)
-    + "...";
+  const plainText = cleanHtml(post.content);
+  const excerpt = plainText.substring(0, 300) + (plainText.length > 300 ? "..." : "");
+  const conclusion = extractConclusion(post.content, post.summary);
 
   return (
     <article className={`group relative border-b border-neutral-200/60 py-6 last:border-b-0 dark:border-neutral-800/60 sm:py-8 transition-opacity${isRead ? " opacity-50" : ""}`}>
@@ -54,6 +51,20 @@ export function PostCard({ post, priority = false, isRead = false }: { post: Pos
         {excerpt}
       </p>
 
+      {conclusion && (
+        <div className="mb-4 relative z-10 rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800/40 dark:bg-neutral-900/20">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+              Kết luận / Tóm tắt
+            </span>
+          </div>
+          <p className="font-serif text-xs leading-relaxed italic text-neutral-600 dark:text-neutral-300">
+            {conclusion}
+          </p>
+        </div>
+      )}
+
       {post.tags && post.tags.length > 0 && (
         <div className="mb-3 relative z-10">
           <TagList tags={post.tags} />
@@ -69,4 +80,5 @@ export function PostCard({ post, priority = false, isRead = false }: { post: Pos
     </article>
   );
 }
+
 
