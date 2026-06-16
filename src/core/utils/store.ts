@@ -59,6 +59,10 @@ export async function getPaginatedUnreadPosts(page: number, limit: number, readS
   return { posts: posts.map(toPost), total, page: safePage, totalUnreadPages };
 }
 
+export async function getUnreadCount(readSlugs: string[]): Promise<number> {
+  return await postRepository.countExcluding(readSlugs);
+}
+
 export async function getReadPosts(readSlugs: string[]): Promise<Post[]> {
   if (!readSlugs.length) return [];
   const posts = await postRepository.findBySlugs(readSlugs);

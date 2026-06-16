@@ -8,6 +8,7 @@ import {
   getAllPosts,
   getPaginatedUnreadPosts,
   getReadPosts,
+  getUnreadCount,
 } from "@/src/core/utils/store";
 import { getReadSlugsForSession } from "@/src/core/utils/session-server";
 
@@ -98,12 +99,13 @@ export default async function HomePage({ searchParams }: PageProps) {
   // ── Filter: Đã xem ────────────────────────────────────────────────────────
   if (isReadFilter) {
     const readPosts = await getReadPosts(readSlugs);
+    const unreadCount = await getUnreadCount(readSlugs);
     return (
       <div className="mx-auto max-w-3xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8">
         {pageHeader}
         <FilterTabs
           currentFilter="read"
-          unreadCount={0}
+          unreadCount={unreadCount}
           readCount={readCount}
         />
         {readPosts.length === 0 ? (

@@ -45,12 +45,18 @@ export async function GET(request: Request) {
     });
 
     const response = NextResponse.json({ reads: [] });
+    // Dùng x-forwarded-proto để check nếu đang chạy qua proxy (Vercel) có https
+    const isHttps = request.headers.get("x-forwarded-proto") === "https" || request.url.startsWith("https://");
+    const isLocalhost = request.url.includes("localhost") || request.url.includes("127.0.0.1");
+    
     response.cookies.set(COOKIE_NAME, newCookieId, {
       httpOnly: true,
       maxAge: COOKIE_MAX_AGE,
       sameSite: "lax",
       path: "/",
-      secure: process.env.NODE_ENV === "production",
+      // Secure is true ONLY IF HTTPS is actually used, OR if process.env.NODE_ENV is production BUT we are on Vercel/HTTPS.
+      // Cho phép HTTP (khi test trên IP server hoặc local network).
+      secure: isHttps || (process.env.NODE_ENV === "production" && !isLocalhost && isHttps), 
     });
     return response;
   } catch (error: any) {
