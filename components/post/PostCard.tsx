@@ -7,8 +7,16 @@ import { TagList } from "./TagList";
 
 export function PostCard({ post, priority = false, isRead = false }: { post: Post; priority?: boolean; isRead?: boolean }) {
   const plainText = cleanHtml(post.content);
-  const excerpt = plainText.substring(0, 300) + (plainText.length > 300 ? "..." : "");
   const conclusion = extractConclusion(post.content, post.summary);
+
+  // Sử dụng kết luận làm phần preview nếu có, giới hạn tối đa 500 ký tự
+  // Nếu không có kết luận, sử dụng 400 ký tự đầu tiên của bài viết
+  let excerpt = "";
+  if (conclusion) {
+    excerpt = conclusion.substring(0, 500) + (conclusion.length > 500 ? "..." : "");
+  } else {
+    excerpt = plainText.substring(0, 400) + (plainText.length > 400 ? "..." : "");
+  }
 
   return (
     <article className={`group relative border-b border-neutral-200/60 py-6 last:border-b-0 dark:border-neutral-800/60 sm:py-8 transition-opacity${isRead ? " opacity-50" : ""}`}>
@@ -50,20 +58,6 @@ export function PostCard({ post, priority = false, isRead = false }: { post: Pos
       <p className="mb-3 text-sm font-serif leading-relaxed text-neutral-500 dark:text-neutral-400 sm:text-base">
         {excerpt}
       </p>
-
-      {conclusion && (
-        <div className="mb-4 relative z-10 rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800/40 dark:bg-neutral-900/20">
-          <div className="mb-1.5 flex items-center gap-1.5">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-              Kết luận / Tóm tắt
-            </span>
-          </div>
-          <p className="font-serif text-xs leading-relaxed italic text-neutral-600 dark:text-neutral-300">
-            {conclusion}
-          </p>
-        </div>
-      )}
 
       {post.tags && post.tags.length > 0 && (
         <div className="mb-3 relative z-10">
